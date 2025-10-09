@@ -1,0 +1,18 @@
+# bundler
+.bundle/
+vendor/bundle
+
+# rails
+log/
+tmp/
+storage/
+public/assets/
+node_modules/
+coverage/
+
+# credentials
+config/master.key
+config/credentials.yml.enc
+
+# docker
+*.pid
