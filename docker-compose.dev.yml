@@ -7,8 +7,6 @@ services:
       POSTGRES_DB: zero_kiss_development
     volumes:
       - postgres_data_dev:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
 
   app:
     build: .
