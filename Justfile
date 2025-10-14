@@ -28,6 +28,9 @@ dev-stop:
 dev-clean:
 	docker compose -f docker-compose.dev.yml down
 
+dev-swaggerize:
+	docker compose -f docker-compose.dev.yml exec -e RAILS_ENV=development app bundle exec rake rswag:specs:swaggerize
+
 test-build:
 	docker compose -f docker-compose.test.yml build
 
@@ -39,6 +42,9 @@ test path='':
 
 test-clean:
 	docker compose -f docker-compose.test.yml down
+
+test-swaggerize:
+	docker compose -f docker-compose.test.yml run --rm app bundle exec rake rswag:specs:swaggerize
 
 clean-all:
 	docker compose -f docker-compose.dev.yml down

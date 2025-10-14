@@ -48,6 +48,14 @@ RSpec.describe "Frames API", type: :request do
       end
     end
 
+    context "when there is minimum separation (epsilon = 0.001)" do
+      it "returns 201" do
+        create(:frame, center_x: 0, center_y: 0, width: 10, height: 10)
+        post path, params: { frame: { center_x: 10.001, center_y: 0, width: 10, height: 10 } }
+        expect(response).to have_http_status(:created)
+      end
+    end
+
     context "when there is strict separation" do
       it "returns 201" do
         create(:frame, center_x: 0, center_y: 0, width: 10, height: 10)
