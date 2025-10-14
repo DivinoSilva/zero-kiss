@@ -6,7 +6,10 @@ Rails.application.routes.draw do
 
   namespace :api do
     namespace :v1 do
-      resources :frames, only: %i[create show destroy]
+      resources :frames, only: %i[create show destroy] do
+        resources :circles, only: %i[create]
+      end
+      resources :circles, only: %i[index update destroy]
     end
   end
 end
