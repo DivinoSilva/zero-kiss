@@ -45,6 +45,12 @@ RSpec.describe Frame, type: :model do
           create(:frame, center_x: 11, center_y: 0, width: 10, height: 10)
         }.not_to raise_error
       end
+
+      it "allows minimum separation (epsilon = 0.001)" do
+        expect {
+          create(:frame, center_x: 10.001, center_y: 0, width: 10, height: 10)
+        }.not_to raise_error
+      end
     end
 
     context "on update" do
@@ -60,6 +66,13 @@ RSpec.describe Frame, type: :model do
         expect {
           other.update!(center_x: 4, center_y: 0)
         }.to raise_error(ActiveRecord::StatementInvalid)
+      end
+
+      it "allows moving to minimum separation (epsilon = 0.001)" do
+        other = create(:frame, center_x: 20, center_y: 0, width: 10, height: 10)
+        expect {
+          other.update!(center_x: 10.001, center_y: 0)
+        }.not_to raise_error
       end
     end
   end
