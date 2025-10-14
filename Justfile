@@ -7,6 +7,9 @@ build:
 dev:
 	docker compose -f docker-compose.dev.yml up -d
 
+dev-bundle:
+	docker compose -f docker-compose.dev.yml exec app bundle install
+
 dev-migrate:
 	docker compose -f docker-compose.dev.yml exec app bundle exec rails db:create db:migrate
 
