@@ -140,6 +140,76 @@ components:
               example: 30.0
           description: If the new frame would touch/overlap another frame, server
             responds 422.
+    Circle:
+      type: object
+      properties:
+        id:
+          type: integer
+        frame_id:
+          type: integer
+        center_x:
+          type: number
+          format: float
+          example: 10.0
+        center_y:
+          type: number
+          format: float
+          example: 10.0
+        diameter:
+          type: number
+          format: float
+          minimum: 0
+          exclusiveMinimum: true
+          example: 6.0
+      required:
+      - id
+      - frame_id
+      - center_x
+      - center_y
+      - diameter
+    CircleCreatePayload:
+      type: object
+      required:
+      - circle
+      properties:
+        circle:
+          type: object
+          required:
+          - center_x
+          - center_y
+          - diameter
+          properties:
+            center_x:
+              type: number
+              format: float
+            center_y:
+              type: number
+              format: float
+            diameter:
+              type: number
+              format: float
+              minimum: 0
+              exclusiveMinimum: true
+    CircleUpdatePayload:
+      type: object
+      required:
+      - circle
+      properties:
+        circle:
+          type: object
+          properties:
+            center_x:
+              type: number
+              format: float
+            center_y:
+              type: number
+              format: float
+            diameter:
+              type: number
+              format: float
+              minimum: 0
+              exclusiveMinimum: true
+          description: At least one attribute must be present.
     Errors422:
       type: object
       properties:

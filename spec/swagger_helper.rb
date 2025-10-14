@@ -2,15 +2,12 @@
 require "rails_helper"
 
 RSpec.configure do |config|
-  config.swagger_root = Rails.root.join("swagger").to_s
+  config.openapi_root = Rails.root.join("swagger").to_s
 
-  config.swagger_docs = {
+  config.openapi_specs = {
     "v1/swagger.yaml" => {
       openapi: "3.0.1",
-      info: {
-        title: "ZeroKiss API",
-        version: "v1"
-      },
+      info: { title: "ZeroKiss API", version: "v1" },
       paths: {},
       components: {
         schemas: {
@@ -43,6 +40,47 @@ RSpec.configure do |config|
               }
             }
           },
+          Circle: {
+            type: :object,
+            properties: {
+              id: { type: :integer },
+              frame_id: { type: :integer },
+              center_x: { type: :number, format: :float, example: 10.0 },
+              center_y: { type: :number, format: :float, example: 10.0 },
+              diameter: { type: :number, format: :float, minimum: 0, exclusiveMinimum: true, example: 6.0 }
+            },
+            required: %i[id frame_id center_x center_y diameter]
+          },
+          CircleCreatePayload: {
+            type: :object,
+            required: ["circle"],
+            properties: {
+              circle: {
+                type: :object,
+                required: %w[center_x center_y diameter],
+                properties: {
+                  center_x: { type: :number, format: :float },
+                  center_y: { type: :number, format: :float },
+                  diameter: { type: :number, format: :float, minimum: 0, exclusiveMinimum: true }
+                }
+              }
+            }
+          },
+          CircleUpdatePayload: {
+            type: :object,
+            required: ["circle"],
+            properties: {
+              circle: {
+                type: :object,
+                properties: {
+                  center_x: { type: :number, format: :float },
+                  center_y: { type: :number, format: :float },
+                  diameter: { type: :number, format: :float, minimum: 0, exclusiveMinimum: true }
+                },
+                description: "At least one attribute must be present."
+              }
+            }
+          },
           Errors422: {
             type: :object,
             properties: {
@@ -64,5 +102,5 @@ RSpec.configure do |config|
     }
   }
 
-  config.swagger_format = :yaml
+  config.openapi_format = :yaml
 end
