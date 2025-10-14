@@ -1,9 +1,67 @@
 ---
 openapi: 3.0.1
 info:
-  title: API V1
+  title: ZeroKiss API
   version: v1
 paths:
+  "/api/v1/frames":
+    post:
+      summary: create frame
+      tags:
+      - Frames
+      parameters: []
+      responses:
+        '201':
+          description: created
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Frame"
+        '422':
+          description: unprocessable entity
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Errors422"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/FrameCreatePayload"
+  "/api/v1/frames/{id}":
+    parameters:
+    - name: id
+      in: path
+      description: Frame ID
+      required: true
+      schema:
+        type: integer
+    get:
+      summary: show frame
+      tags:
+      - Frames
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Frame"
+        '404':
+          description: not found
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
+    delete:
+      summary: delete frame
+      tags:
+      - Frames
+      responses:
+        '204':
+          description: no content
+        '404':
+          description: not found
   "/healthz":
     get:
       summary: Health check
@@ -12,8 +70,96 @@ paths:
       responses:
         '200':
           description: ok
-servers:
-- url: https://{defaultHost}
-  variables:
-    defaultHost:
-      default: www.example.com
+components:
+  schemas:
+    Frame:
+      type: object
+      description: 'A frame rectangle in centimeters. Business rule: frames must NOT
+        touch or overlap; violations return 422.'
+      properties:
+        id:
+          type: integer
+        center_x:
+          type: number
+          format: float
+          example: 10.0
+        center_y:
+          type: number
+          format: float
+          example: 10.0
+        width:
+          type: number
+          format: float
+          minimum: 0
+          exclusiveMinimum: true
+          example: 20.0
+        height:
+          type: number
+          format: float
+          minimum: 0
+          exclusiveMinimum: true
+          example: 30.0
+      required:
+      - id
+      - center_x
+      - center_y
+      - width
+      - height
+    FrameCreatePayload:
+      type: object
+      required:
+      - frame
+      properties:
+        frame:
+          type: object
+          required:
+          - center_x
+          - center_y
+          - width
+          - height
+          properties:
+            center_x:
+              type: number
+              format: float
+              example: 10.0
+            center_y:
+              type: number
+              format: float
+              example: 10.0
+            width:
+              type: number
+              format: float
+              minimum: 0
+              exclusiveMinimum: true
+              example: 20.0
+            height:
+              type: number
+              format: float
+              minimum: 0
+              exclusiveMinimum: true
+              example: 30.0
+          description: If the new frame would touch/overlap another frame, server
+            responds 422.
+    Errors422:
+      type: object
+      properties:
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+      required:
+      - errors
+      example:
+        errors:
+          base:
+          - frames cannot touch or overlap
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          example: not found
+      required:
+      - error

@@ -1,43 +1,68 @@
 # frozen_string_literal: true
-
-require 'rails_helper'
+require "rails_helper"
 
 RSpec.configure do |config|
-  # Specify a root folder where Swagger JSON files are generated
-  # NOTE: If you're using the rswag-api to serve API descriptions, you'll need
-  # to ensure that it's configured to serve Swagger from the same folder
-  config.openapi_root = Rails.root.join('swagger').to_s
+  config.swagger_root = Rails.root.join("swagger").to_s
 
-  # Define one or more Swagger documents and provide global metadata for each one
-  # When you run the 'rswag:specs:swaggerize' rake task, the complete Swagger will
-  # be generated at the provided relative path under openapi_root
-  # By default, the operations defined in spec files are added to the first
-  # document below. You can override this behavior by adding a openapi_spec tag to the
-  # the root example_group in your specs, e.g. describe '...', openapi_spec: 'v2/swagger.json'
-  config.openapi_specs = {
-    'v1/swagger.yaml' => {
-      openapi: '3.0.1',
+  config.swagger_docs = {
+    "v1/swagger.yaml" => {
+      openapi: "3.0.1",
       info: {
-        title: 'API V1',
-        version: 'v1'
+        title: "ZeroKiss API",
+        version: "v1"
       },
       paths: {},
-      servers: [
-        {
-          url: 'https://{defaultHost}',
-          variables: {
-            defaultHost: {
-              default: 'www.example.com'
+      components: {
+        schemas: {
+          Frame: {
+            type: :object,
+            description: "A frame rectangle in centimeters. Business rule: frames must NOT touch or overlap; violations return 422.",
+            properties: {
+              id: { type: :integer },
+              center_x: { type: :number, format: :float, example: 10.0 },
+              center_y: { type: :number, format: :float, example: 10.0 },
+              width:    { type: :number, format: :float, minimum: 0, exclusiveMinimum: true, example: 20.0 },
+              height:   { type: :number, format: :float, minimum: 0, exclusiveMinimum: true, example: 30.0 }
+            },
+            required: %i[id center_x center_y width height]
+          },
+          FrameCreatePayload: {
+            type: :object,
+            required: ["frame"],
+            properties: {
+              frame: {
+                type: :object,
+                required: %w[center_x center_y width height],
+                properties: {
+                  center_x: { type: :number, format: :float, example: 10.0 },
+                  center_y: { type: :number, format: :float, example: 10.0 },
+                  width:    { type: :number, format: :float, minimum: 0, exclusiveMinimum: true, example: 20.0 },
+                  height:   { type: :number, format: :float, minimum: 0, exclusiveMinimum: true, example: 30.0 }
+                },
+                description: "If the new frame would touch/overlap another frame, server responds 422."
+              }
             }
+          },
+          Errors422: {
+            type: :object,
+            properties: {
+              errors: {
+                type: :object,
+                additionalProperties: { type: :array, items: { type: :string } }
+              }
+            },
+            required: ["errors"],
+            example: { errors: { base: ["frames cannot touch or overlap"] } }
+          },
+          Error: {
+            type: :object,
+            properties: { error: { type: :string, example: "not found" } },
+            required: ["error"]
           }
         }
-      ]
+      }
     }
   }
 
-  # Specify the format of the output Swagger file when running 'rswag:specs:swaggerize'.
-  # The openapi_specs configuration option has the filename including format in
-  # the key, this may want to be changed to avoid putting yaml in json files.
-  # Defaults to json. Accepts ':json' and ':yaml'.
-  config.openapi_format = :yaml
+  config.swagger_format = :yaml
 end
