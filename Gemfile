@@ -7,8 +7,7 @@ gem "puma", ">= 5.0"
 gem "rack-cors", "~> 2.0"
 gem "bootsnap", require: false
 
-gem "debug", platforms: [:mri, :windows]
-gem "tzinfo-data", platforms: [:windows, :jruby]
+gem "debug", platforms: [:mri, :mingw, :x64_mingw, :mswin]
 
 group :development, :test do
   gem "rswag-api", "~> 2.13"
