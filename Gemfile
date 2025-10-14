@@ -10,16 +10,17 @@ gem "bootsnap", require: false
 gem "debug", platforms: [:mri, :windows]
 gem "tzinfo-data", platforms: [:windows, :jruby]
 
-group :development do
-  gem "rswag-api", "~> 2.13"
-  gem "rswag-ui", "~> 2.13"
-  gem "rswag-specs", "~> 2.13"
-  gem "brakeman"
-  gem "rubocop-rails-omakase"
-end
-
 group :development, :test do
+  gem "rswag-api", "~> 2.13"
+  gem "rswag-ui",  "~> 2.13"
+  gem "rswag-specs","~> 2.13"
+
   gem "rspec-rails", "~> 6.1"
   gem "factory_bot_rails", "~> 6.4"
   gem "faker", "~> 3.4"
+end
+
+group :development do
+  gem "brakeman"
+  gem "rubocop-rails-omakase"
 end
