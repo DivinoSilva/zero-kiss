@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <title>Debug: Frame Viewer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <style>
+      :root { color-scheme: light dark; }
+      body { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Apple Color Emoji","Segoe UI Emoji"; margin: 24px; }
+      input, button { font: inherit; padding: 8px 12px; }
+      .row { display:flex; gap:8px; align-items:center; margin-bottom:12px; }
+      #canvas { border:1px solid #ccc; width:800px; height:600px; background: #f9fafb; }
+      .muted { opacity:.7; font-size: 12px; }
+      .legend { margin: 8px 0 16px; }
+      svg { width:100%; height:100%; }
+    </style>
+  </head>
+  <body>
+    <h1>Frame Viewer (SVG)</h1>
+    <div class="row">
+      <label for="frameId">Frame ID:</label>
+      <input id="frameId" type="number" min="1" placeholder="e.g. 1"/>
+      <button id="loadBtn">Load</button>
+      <span class="muted">Draws the frame rectangle and all its circles. Coordinates are interpreted in cm; we autoscale to fit.</span>
+    </div>
+    <div id="meta" class="legend muted"></div>
+    <div id="canvas"></div>
+
+    <script>
+      const elBtn = document.getElementById('loadBtn');
+      const elId  = document.getElementById('frameId');
+      const elMeta= document.getElementById('meta');
+      const elCanvas = document.getElementById('canvas');
+
+      function clearCanvas(){ elCanvas.innerHTML = ""; elMeta.textContent = ""; }
+
+      function drawFrame(frame) {
+        const width  = 800;
+        const height = 600;
+
+        const fxMin = frame.center_x - frame.width/2;
+        const fxMax = frame.center_x + frame.width/2;
+        const fyMin = frame.center_y - frame.height/2;
+        const fyMax = frame.center_y + frame.height/2;
+
+        const pad = 10;
+        const dataW = fxMax - fxMin;
+        const dataH = fyMax - fyMin;
+        const scaleX = (width - 2*pad) / dataW;
+        const scaleY = (height - 2*pad) / dataH;
+        const scale  = Math.min(scaleX, scaleY);
+
+        function xToPx(x) { return (x - fxMin) * scale + pad; }
+        function yToPx(y) { 
+          return height - ((y - fyMin) * scale + pad);
+        }
+
+        const svgNS = "http://www.w3.org/2000/svg";
+        const svg = document.createElementNS(svgNS, "svg");
+        svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+
+        const rect = document.createElementNS(svgNS, "rect");
+        rect.setAttribute("x", xToPx(fxMin));
+        rect.setAttribute("y", yToPx(fyMax));
+        rect.setAttribute("width", dataW * scale);
+        rect.setAttribute("height", dataH * scale);
+        rect.setAttribute("fill", "none");
+        rect.setAttribute("stroke", "blue");
+        rect.setAttribute("stroke-width", "2");
+        svg.appendChild(rect);
+
+        frame.circles.forEach(c => {
+          const r = (c.diameter/2) * scale;
+          const cx = xToPx(c.center_x);
+          const cy = yToPx(c.center_y);
+          const circle = document.createElementNS(svgNS, "circle");
+          circle.setAttribute("cx", cx);
+          circle.setAttribute("cy", cy);
+          circle.setAttribute("r", r);
+          circle.setAttribute("fill", "rgba(0,0,0,0.05)");
+          circle.setAttribute("stroke", "red");
+          svg.appendChild(circle);
+        });
+
+        elCanvas.appendChild(svg);
+        elMeta.textContent = `Frame #${frame.id}  • center=(${frame.center_x}, ${frame.center_y})  • size=${frame.width}×${frame.height}  • circles=${frame.circles_count}`;
+      }
+
+      async function load() {
+        clearCanvas();
+        const id = elId.value;
+        if (!id) { alert("Type a Frame ID"); return; }
+        const res = await fetch(`/api/v1/frames/${id}`);
+        if (!res.ok) {
+          const err = await res.text();
+          alert(`Error ${res.status}: ${err}`);
+          return;
+        }
+        const frame = await res.json();
+        drawFrame(frame);
+      }
+
+      elBtn.addEventListener('click', load);
+    </script>
+  </body>
+</html>

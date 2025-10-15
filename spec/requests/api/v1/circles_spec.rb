@@ -113,7 +113,7 @@ RSpec.describe "Circles API", type: :request do
     end
 
     it "clamps per_page to the maximum (200)" do
-      205.times { |i| create(:circle, frame:, center_x: -15 + i * 0.06, center_y: 0, diameter: 0.05) }
+      205.times { |i| create(:circle, frame:, center_x: -15 + i * 0.01, center_y: 0, diameter: 1) }
       get "/api/v1/circles", params: { per_page: 1_000, page: 1 }
       expect(response).to have_http_status(:ok)
       expect(json.length).to be <= 200
