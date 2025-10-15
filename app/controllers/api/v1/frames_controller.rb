@@ -1,4 +1,3 @@
-# app/controllers/api/v1/frames_controller.rb
 # frozen_string_literal: true
 
 module Api
