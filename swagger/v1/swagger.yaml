@@ -28,43 +28,25 @@ paths:
           description: Circle created
           content:
             application/json:
-              examples:
-                example_0:
-                  value:
-                    id: 1
-                    frame_id: 1
-                    center_x: 0.0
-                    center_y: 0.0
-                    diameter: 6.0
               schema:
                 "$ref": "#/components/schemas/Circle"
         '422':
           description: Validation error
           content:
             application/json:
-              examples:
-                example_0:
-                  value:
-                    errors:
-                      base:
-                      - circle must be fully inside the frame
               schema:
                 "$ref": "#/components/schemas/Errors422"
         '404':
           description: Frame not found
           content:
             application/json:
-              examples:
-                example_0:
-                  value:
-                    error: not found
               schema:
                 "$ref": "#/components/schemas/Error"
       requestBody:
         content:
           application/json:
             schema:
-              "$ref": "#/components/schemas/CircleCreatePayload"
+              "$ref": "#/components/schemas/CircleCreatePayload/properties/circle"
   "/api/v1/circles/{id}":
     put:
       summary: Update a circle
@@ -74,7 +56,6 @@ paths:
       parameters:
       - name: id
         in: path
-        description: Circle ID
         required: true
         schema:
           type: integer
@@ -83,43 +64,25 @@ paths:
           description: Circle updated
           content:
             application/json:
-              examples:
-                example_0:
-                  value:
-                    id: 1
-                    frame_id: 1
-                    center_x: 1.0
-                    center_y: 0.0
-                    diameter: 6.0
               schema:
                 "$ref": "#/components/schemas/Circle"
         '422':
           description: Validation error
           content:
             application/json:
-              examples:
-                example_0:
-                  value:
-                    errors:
-                      diameter:
-                      - must be greater than 0
               schema:
                 "$ref": "#/components/schemas/Errors422"
         '404':
           description: Circle not found
           content:
             application/json:
-              examples:
-                example_0:
-                  value:
-                    error: not found
               schema:
                 "$ref": "#/components/schemas/Error"
       requestBody:
         content:
           application/json:
             schema:
-              "$ref": "#/components/schemas/CircleUpdatePayload"
+              "$ref": "#/components/schemas/CircleUpdatePayload/properties/circle"
     delete:
       summary: Delete a circle
       operationId: deleteCircle
@@ -128,7 +91,6 @@ paths:
       parameters:
       - name: id
         in: path
-        description: Circle ID
         required: true
         schema:
           type: integer
@@ -139,15 +101,11 @@ paths:
           description: Circle not found
           content:
             application/json:
-              examples:
-                example_0:
-                  value:
-                    error: not found
               schema:
                 "$ref": "#/components/schemas/Error"
   "/api/v1/circles":
     get:
-      summary: Search circles by radius and optional frame_id
+      summary: Search circles
       operationId: searchCircles
       tags:
       - Circles
@@ -156,34 +114,24 @@ paths:
         in: query
         schema:
           type: number
-        description: Search center X
-        required: false
       - name: center_y
         in: query
         schema:
           type: number
-        description: Search center Y
-        required: false
       - name: radius
         in: query
         schema:
           type: number
-        description: Search radius
-        required: false
       - name: frame_id
         in: query
         schema:
           type: integer
-        description: Filter by frame
-        required: false
       - name: page
         in: query
         schema:
           type: integer
           default: 1
           minimum: 1
-        description: Page number
-        required: false
       - name: per_page
         in: query
         schema:
@@ -191,21 +139,11 @@ paths:
           default: 50
           minimum: 1
           maximum: 200
-        description: Items per page
-        required: false
       responses:
         '200':
           description: OK
           content:
             application/json:
-              examples:
-                example_0:
-                  value:
-                  - id: 1
-                    frame_id: 1
-                    center_x: 0.0
-                    center_y: 0.0
-                    diameter: 6.0
               schema:
                 type: array
                 items:
@@ -222,37 +160,19 @@ paths:
           description: Frame created
           content:
             application/json:
-              examples:
-                example_0:
-                  value:
-                    id: 1
-                    center_x: 10.0
-                    center_y: 10.0
-                    width: 20.0
-                    height: 30.0
-                    circles_count: 0
-                    circles: []
               schema:
                 "$ref": "#/components/schemas/FrameShow"
         '422':
           description: Validation error
           content:
             application/json:
-              examples:
-                example_0:
-                  value:
-                    errors:
-                      width:
-                      - must be greater than 0
-                      height:
-                      - must be greater than 0
               schema:
                 "$ref": "#/components/schemas/Errors422"
       requestBody:
         content:
           application/json:
             schema:
-              "$ref": "#/components/schemas/FrameCreatePayload"
+              "$ref": "#/components/schemas/FrameCreatePayload/properties/frame"
   "/api/v1/frames/{id}":
     get:
       summary: Show a frame
@@ -262,7 +182,6 @@ paths:
       parameters:
       - name: id
         in: path
-        description: Frame ID
         required: true
         schema:
           type: integer
@@ -271,30 +190,12 @@ paths:
           description: OK
           content:
             application/json:
-              examples:
-                example_0:
-                  value:
-                    id: 1
-                    center_x: 10.0
-                    center_y: 10.0
-                    width: 20.0
-                    height: 30.0
-                    circles_count: 0
-                    circles: []
-                    topmost_circle:
-                    bottommost_circle:
-                    leftmost_circle:
-                    rightmost_circle:
               schema:
                 "$ref": "#/components/schemas/FrameShow"
         '404':
           description: Not found
           content:
             application/json:
-              examples:
-                example_0:
-                  value:
-                    error: not found
               schema:
                 "$ref": "#/components/schemas/Error"
     delete:
@@ -305,7 +206,6 @@ paths:
       parameters:
       - name: id
         in: path
-        description: Frame ID
         required: true
         schema:
           type: integer
@@ -316,22 +216,12 @@ paths:
           description: Cannot delete frame with circles
           content:
             application/json:
-              examples:
-                example_0:
-                  value:
-                    errors:
-                      base:
-                      - Cannot delete record because dependent circles exist
               schema:
                 "$ref": "#/components/schemas/Errors422"
         '404':
           description: Not found
           content:
             application/json:
-              examples:
-                example_0:
-                  value:
-                    error: not found
               schema:
                 "$ref": "#/components/schemas/Error"
   "/healthz":

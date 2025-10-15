@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 require "swagger_helper"
 
 RSpec.describe "Circles API", type: :request do
@@ -10,35 +9,27 @@ RSpec.describe "Circles API", type: :request do
       produces "application/json"
 
       parameter name: :frame_id, in: :path, type: :integer, description: "Frame ID"
-      parameter name: :payload,
-                in: :body,
-                schema: { "$ref" => "#/components/schemas/CircleCreatePayload" }
+      parameter name: :circle, in: :body, schema: { "$ref" => "#/components/schemas/CircleCreatePayload/properties/circle" }
+
+      let(:frame)    { create(:frame, center_x: 0, center_y: 0, width: 40, height: 40) }
+      let(:frame_id) { frame.id }
 
       response "201", "Circle created" do
         schema "$ref" => "#/components/schemas/Circle"
-        let(:frame_id) { create(:frame).id }
-        let(:payload)  { { circle: attributes_for(:circle).except(:frame) } }
-        examples "application/json" => {
-          id: 1, frame_id: 1, center_x: 0.0, center_y: 0.0, diameter: 6.0
-        }
+        let(:circle) { { center_x: 0, center_y: 0, diameter: 6 } }
         run_test!
       end
 
       response "422", "Validation error" do
         schema "$ref" => "#/components/schemas/Errors422"
-        let(:frame_id) { create(:frame).id }
-        let(:payload)  { { circle: { center_x: 10, center_y: 0, diameter: 1000 } } }
-        examples "application/json" => {
-          errors: { base: ["circle must be fully inside the frame"] }
-        }
+        let(:circle) { { center_x: 21, center_y: 0, diameter: 40 } }
         run_test!
       end
 
       response "404", "Frame not found" do
         schema "$ref" => "#/components/schemas/Error"
         let(:frame_id) { 999_999 }
-        let(:payload)  { { circle: attributes_for(:circle).except(:frame) } }
-        examples "application/json" => { error: "not found" }
+        let(:circle)   { { center_x: 0, center_y: 0, diameter: 6 } }
         run_test!
       end
     end
@@ -51,38 +42,31 @@ RSpec.describe "Circles API", type: :request do
       consumes "application/json"
       produces "application/json"
 
-      parameter name: :id, in: :path, type: :integer, description: "Circle ID"
-      parameter name: :payload,
-                in: :body,
-                schema: { "$ref" => "#/components/schemas/CircleUpdatePayload" }
+      parameter name: :id, in: :path, type: :integer
+      parameter name: :circle, in: :body, schema: { "$ref" => "#/components/schemas/CircleUpdatePayload/properties/circle" }
+
+      let(:frame) { create(:frame, center_x: 0, center_y: 0, width: 40, height: 40) }
 
       response "200", "Circle updated" do
         schema "$ref" => "#/components/schemas/Circle"
-        let(:circle)  { create(:circle) }
-        let(:id)      { circle.id }
-        let(:payload) { { circle: { center_x: 1 } } }
-        examples "application/json" => {
-          id: 1, frame_id: 1, center_x: 1.0, center_y: 0.0, diameter: 6.0
-        }
+        let(:existing) { create(:circle, frame:, center_x: 0, center_y: 0, diameter: 6) }
+        let(:id)       { existing.id }
+        let(:circle)   { { center_x: 1 } }
         run_test!
       end
 
       response "422", "Validation error" do
         schema "$ref" => "#/components/schemas/Errors422"
-        let(:circle)  { create(:circle) }
-        let(:id)      { circle.id }
-        let(:payload) { { circle: { diameter: 0 } } }
-        examples "application/json" => {
-          errors: { diameter: ["must be greater than 0"] }
-        }
+        let(:existing) { create(:circle, frame:, center_x: 0, center_y: 0, diameter: 40) }
+        let(:id)       { existing.id }
+        let(:circle)   { { center_x: 10.1 } }
         run_test!
       end
 
       response "404", "Circle not found" do
         schema "$ref" => "#/components/schemas/Error"
-        let(:id)      { 999_999 }
-        let(:payload) { { circle: { center_x: 1 } } }
-        examples "application/json" => { error: "not found" }
+        let(:id)     { 999_999 }
+        let(:circle) { { center_x: 1 } }
         run_test!
       end
     end
@@ -91,34 +75,35 @@ RSpec.describe "Circles API", type: :request do
       operationId "deleteCircle"
       tags "Circles"
       produces "application/json"
-      parameter name: :id, in: :path, type: :integer, description: "Circle ID"
+      parameter name: :id, in: :path, type: :integer
+
+      let(:frame) { create(:frame, center_x: 0, center_y: 0, width: 40, height: 40) }
 
       response "204", "No content" do
-        let(:id) { create(:circle).id }
+        let(:id) { create(:circle, frame:, center_x: 0, center_y: 0, diameter: 6).id }
         run_test!
       end
 
       response "404", "Circle not found" do
         schema "$ref" => "#/components/schemas/Error"
         let(:id) { 999_999 }
-        examples "application/json" => { error: "not found" }
         run_test!
       end
     end
   end
 
   path "/api/v1/circles" do
-    get "Search circles by radius and optional frame_id" do
+    get "Search circles" do
       operationId "searchCircles"
       tags "Circles"
       produces "application/json"
 
-      parameter name: :center_x, in: :query, schema: { type: :number }, description: "Search center X", required: false
-      parameter name: :center_y, in: :query, schema: { type: :number }, description: "Search center Y", required: false
-      parameter name: :radius,   in: :query, schema: { type: :number }, description: "Search radius",   required: false
-      parameter name: :frame_id, in: :query, schema: { type: :integer }, description: "Filter by frame", required: false
-      parameter name: :page,     in: :query, schema: { type: :integer, default: 1, minimum: 1 }, description: "Page number", required: false
-      parameter name: :per_page, in: :query, schema: { type: :integer, default: 50, minimum: 1, maximum: 200 }, description: "Items per page", required: false
+      parameter name: :center_x, in: :query, schema: { type: :number }
+      parameter name: :center_y, in: :query, schema: { type: :number }
+      parameter name: :radius,   in: :query, schema: { type: :number }
+      parameter name: :frame_id, in: :query, schema: { type: :integer }
+      parameter name: :page,     in: :query, schema: { type: :integer, default: 1, minimum: 1 }
+      parameter name: :per_page, in: :query, schema: { type: :integer, default: 50, minimum: 1, maximum: 200 }
 
       let(:center_x) { nil }
       let(:center_y) { nil }
@@ -129,9 +114,6 @@ RSpec.describe "Circles API", type: :request do
 
       response "200", "OK" do
         schema type: :array, items: { "$ref" => "#/components/schemas/Circle" }
-        examples "application/json" => [
-          { id: 1, frame_id: 1, center_x: 0.0, center_y: 0.0, diameter: 6.0 }
-        ]
         run_test!
       end
     end

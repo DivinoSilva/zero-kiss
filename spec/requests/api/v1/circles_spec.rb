@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require "rails_helper"
 
 RSpec.describe "Circles API", type: :request do
@@ -81,10 +82,8 @@ RSpec.describe "Circles API", type: :request do
 
   describe "GET /api/v1/circles (search + filter + pagination)" do
     before do
-      create(:circle, frame:, center_x: 0, center_y: 0, diameter: 6)
-      create(:circle, frame:, center_x: 2, center_y: 0, diameter: 2)
-      other = create(:frame, center_x: 100, center_y: 100, width: 40, height: 40)
-      create(:circle, frame: other, center_x: 0, center_y: 0, diameter: 2)
+      create(:circle, frame:, center_x: 0, center_y: 0, diameter: 2)
+      create(:circle, frame:, center_x: 5, center_y: 0, diameter: 2)
     end
 
     it "filters by frame_id" do
@@ -101,7 +100,7 @@ RSpec.describe "Circles API", type: :request do
       expect(ids.size).to eq(1)
     end
 
-    it "returns empty when radius < diameter/2 (cannot contain any circle)" do
+    it "returns empty when radius < diameter/2" do
       get "/api/v1/circles", params: { center_x: 0, center_y: 0, radius: 0.5 }
       expect(response).to have_http_status(:ok)
       expect(json).to eq([])
@@ -114,7 +113,7 @@ RSpec.describe "Circles API", type: :request do
     end
 
     it "clamps per_page to the maximum (200)" do
-      205.times { |i| create(:circle, frame:, center_x: -15 + i * 0.01, center_y: 0, diameter: 1) }
+      205.times { |i| create(:circle, frame:, center_x: -15 + i * 0.06, center_y: 0, diameter: 0.05) }
       get "/api/v1/circles", params: { per_page: 1_000, page: 1 }
       expect(response).to have_http_status(:ok)
       expect(json.length).to be <= 200

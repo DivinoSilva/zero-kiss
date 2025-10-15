@@ -2,12 +2,12 @@
 require "rails_helper"
 
 RSpec.describe Circles::SearchQuery do
-  let!(:frame_a) { create(:frame, center_x: 0, center_y: 0, width: 100, height: 100) }
-  let!(:frame_b) { create(:frame, center_x: 100, center_y: 100, width: 100, height: 100) }
+  let!(:frame_a) { create(:frame, center_x: 0,   center_y: 0,   width: 100, height: 100) }
+  let!(:frame_b) { create(:frame, center_x: 101, center_y: 101, width: 100, height: 100) }
 
-  let!(:c1) { create(:circle, frame: frame_a, center_x: 0,  center_y:  0, diameter: 10) } # r=5
-  let!(:c2) { create(:circle, frame: frame_a, center_x: 8,  center_y:  0, diameter:  4) } # r=2
-  let!(:c3) { create(:circle, frame: frame_b, center_x: 0,  center_y:  0, diameter:  4) } # r=2 (other frame)
+  let!(:c1) { create(:circle, frame: frame_a, center_x: 0,   center_y: 0,   diameter: 10) }
+  let!(:c2) { create(:circle, frame: frame_a, center_x: 8,   center_y: 0,   diameter: 4) }
+  let!(:c3) { create(:circle, frame: frame_b, center_x: 101, center_y: 101, diameter: 4) }
 
   it "returns all circles when no filters are provided" do
     rel = described_class.call({})
