@@ -3,6 +3,7 @@
 module Api
   module V1
     class CirclesController < ApplicationController
+      include Authenticate
       before_action :require_jwt!
       before_action :set_circle, only: %i[update destroy]
 

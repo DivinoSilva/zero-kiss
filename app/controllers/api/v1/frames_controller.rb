@@ -3,6 +3,7 @@
 module Api
   module V1
     class FramesController < ApplicationController
+      include Authenticate
       before_action :require_jwt!
       before_action :set_frame, only: %i[show destroy]
 

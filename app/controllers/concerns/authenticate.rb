@@ -14,12 +14,13 @@ module Authenticate
   private
 
   def require_jwt!
-    auth = request.authorization.to_s
+    auth  = request.authorization.to_s
     token = auth.start_with?("Bearer ") ? auth.split(" ", 2).last : nil
     raise Unauthorized, "unauthorized" unless token
-    JsonWebToken.decode(token)
+    ::JsonWebToken.decode(token)
     true
   rescue JWT::DecodeError => e
     raise Unauthorized, e.message
   end
 end
+
