@@ -7,10 +7,14 @@ module Api
 
       def create
         frame = Frame.new(frame_params)
-        if frame.save
-          render json: frame, serializer: FrameSerializer, status: :created
-        else
-          render_422!(frame)
+
+        Frame.transaction do
+          if frame.save
+            render json: frame, serializer: FrameSerializer, status: :created
+          else
+            render json: { errors: frame.errors.to_hash(true) }, status: :unprocessable_entity
+            raise ActiveRecord::Rollback
+          end
         end
       end
 
@@ -22,7 +26,7 @@ module Api
         if @frame.destroy
           head :no_content
         else
-          render_422!(@frame)
+          render json: { errors: @frame.errors.to_hash(true) }, status: :unprocessable_entity
         end
       end
 
@@ -31,11 +35,14 @@ module Api
       def set_frame
         @frame = Frame.find(params[:id])
       rescue ActiveRecord::RecordNotFound
-        render_404!
+        render json: { error: "not found" }, status: :not_found
       end
 
       def frame_params
-        params.require(:frame).permit(:center_x, :center_y, :width, :height)
+        params.require(:frame).permit(
+          :center_x, :center_y, :width, :height,
+          circles_attributes: %i[center_x center_y diameter]
+        )
       end
     end
   end

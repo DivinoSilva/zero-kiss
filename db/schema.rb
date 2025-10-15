@@ -10,9 +10,33 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_10_14_184217) do
+ActiveRecord::Schema[7.2].define(version: 2025_10_15_000219) do
   # These are extensions that must be enabled in order to support this database
+  enable_extension "btree_gist"
   enable_extension "plpgsql"
+
+  create_table "circles", force: :cascade do |t|
+    t.bigint "frame_id", null: false
+    t.decimal "center_x", precision: 12, scale: 3, null: false
+    t.decimal "center_y", precision: 12, scale: 3, null: false
+    t.decimal "diameter", precision: 12, scale: 3, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.virtual "x_range", type: :numrange, as: "numrange((center_x - (diameter / 2.0)), (center_x + (diameter / 2.0)), '[]'::text)", stored: true
+    t.virtual "y_range", type: :numrange, as: "numrange((center_y - (diameter / 2.0)), (center_y + (diameter / 2.0)), '[]'::text)", stored: true
+    t.virtual "top_edge", type: :decimal, as: "(center_y + (diameter / 2.0))", stored: true
+    t.virtual "bottom_edge", type: :decimal, as: "(center_y - (diameter / 2.0))", stored: true
+    t.virtual "right_edge", type: :decimal, as: "(center_x + (diameter / 2.0))", stored: true
+    t.virtual "left_edge", type: :decimal, as: "(center_x - (diameter / 2.0))", stored: true
+    t.index ["frame_id", "bottom_edge"], name: "index_circles_on_frame_id_and_bottom_edge"
+    t.index ["frame_id", "center_x", "center_y"], name: "index_circles_on_frame_id_and_center_x_and_center_y"
+    t.index ["frame_id", "left_edge"], name: "index_circles_on_frame_id_and_left_edge"
+    t.index ["frame_id", "right_edge"], name: "index_circles_on_frame_id_and_right_edge"
+    t.index ["frame_id", "top_edge"], name: "index_circles_on_frame_id_and_top_edge"
+    t.index ["frame_id"], name: "index_circles_on_frame_id"
+    t.check_constraint "diameter > 0::numeric", name: "circles_diameter_positive"
+    t.exclusion_constraint "frame_id WITH =, x_range WITH &&, y_range WITH &&", using: :gist, name: "circles_no_touch_or_overlap_bbox"
+  end
 
   create_table "frames", force: :cascade do |t|
     t.decimal "center_x", precision: 12, scale: 3, null: false
@@ -27,4 +51,6 @@ ActiveRecord::Schema[7.2].define(version: 2025_10_14_184217) do
     t.index ["width", "height"], name: "index_frames_on_width_and_height"
     t.exclusion_constraint "x_range WITH &&, y_range WITH &&", using: :gist, name: "frames_no_touch_or_overlap"
   end
+
+  add_foreign_key "circles", "frames"
 end

@@ -1,67 +1,12 @@
 ---
-openapi: 3.0.1
+openapi: 3.0.3
 info:
   title: ZeroKiss API
   version: v1
+servers:
+- url: http://localhost:3000
+  description: local
 paths:
-  "/api/v1/frames":
-    post:
-      summary: create frame
-      tags:
-      - Frames
-      parameters: []
-      responses:
-        '201':
-          description: created
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/Frame"
-        '422':
-          description: unprocessable entity
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/Errors422"
-      requestBody:
-        content:
-          application/json:
-            schema:
-              "$ref": "#/components/schemas/FrameCreatePayload"
-  "/api/v1/frames/{id}":
-    parameters:
-    - name: id
-      in: path
-      description: Frame ID
-      required: true
-      schema:
-        type: integer
-    get:
-      summary: show frame
-      tags:
-      - Frames
-      responses:
-        '200':
-          description: ok
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/Frame"
-        '404':
-          description: not found
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/Error"
-    delete:
-      summary: delete frame
-      tags:
-      - Frames
-      responses:
-        '204':
-          description: no content
-        '404':
-          description: not found
   "/healthz":
     get:
       summary: Health check
@@ -72,10 +17,33 @@ paths:
           description: ok
 components:
   schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          example: not found
+      required:
+      - error
+    Errors422:
+      type: object
+      properties:
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+      required:
+      - errors
+      example:
+        errors:
+          base:
+          - validation error
     Frame:
       type: object
-      description: 'A frame rectangle in centimeters. Business rule: frames must NOT
-        touch or overlap; violations return 422.'
+      description: 'Frame (retângulo em cm). Regra: frames não podem tocar/sobrepor
+        (422).'
       properties:
         id:
           type: integer
@@ -138,28 +106,113 @@ components:
               minimum: 0
               exclusiveMinimum: true
               example: 30.0
-          description: If the new frame would touch/overlap another frame, server
-            responds 422.
-    Errors422:
+            circles_attributes:
+              type: array
+              description: Criação aninhada (transação atômica).
+              items:
+                type: object
+                required:
+                - center_x
+                - center_y
+                - diameter
+                properties:
+                  center_x:
+                    type: number
+                    format: float
+                  center_y:
+                    type: number
+                    format: float
+                  diameter:
+                    type: number
+                    format: float
+                    minimum: 0
+                    exclusiveMinimum: true
+          description: Se o novo frame tocar/sobrepor outro, retorna 422.
+    Circle:
       type: object
       properties:
-        errors:
+        id:
+          type: integer
+        frame_id:
+          type: integer
+        center_x:
+          type: number
+          format: float
+        center_y:
+          type: number
+          format: float
+        diameter:
+          type: number
+          format: float
+          minimum: 0
+          exclusiveMinimum: true
+      required:
+      - id
+      - frame_id
+      - center_x
+      - center_y
+      - diameter
+    CircleCreatePayload:
+      type: object
+      required:
+      - circle
+      properties:
+        circle:
           type: object
-          additionalProperties:
+          required:
+          - center_x
+          - center_y
+          - diameter
+          properties:
+            center_x:
+              type: number
+              format: float
+            center_y:
+              type: number
+              format: float
+            diameter:
+              type: number
+              format: float
+              minimum: 0
+              exclusiveMinimum: true
+          description: Deve caber no frame e não tocar/sobrepor outros círculos do
+            mesmo frame.
+    CircleUpdatePayload:
+      type: object
+      required:
+      - circle
+      properties:
+        circle:
+          type: object
+          properties:
+            center_x:
+              type: number
+              format: float
+            center_y:
+              type: number
+              format: float
+            diameter:
+              type: number
+              format: float
+              minimum: 0
+              exclusiveMinimum: true
+          description: Mesmas regras de validação da criação.
+    FrameShow:
+      allOf:
+      - "$ref": "#/components/schemas/Frame"
+      - type: object
+        properties:
+          circles_count:
+            type: integer
+          topmost_circle:
+            "$ref": "#/components/schemas/Circle"
+          bottommost_circle:
+            "$ref": "#/components/schemas/Circle"
+          leftmost_circle:
+            "$ref": "#/components/schemas/Circle"
+          rightmost_circle:
+            "$ref": "#/components/schemas/Circle"
+          circles:
             type: array
             items:
-              type: string
-      required:
-      - errors
-      example:
-        errors:
-          base:
-          - frames cannot touch or overlap
-    Error:
-      type: object
-      properties:
-        error:
-          type: string
-          example: not found
-      required:
-      - error
+              "$ref": "#/components/schemas/Circle"
