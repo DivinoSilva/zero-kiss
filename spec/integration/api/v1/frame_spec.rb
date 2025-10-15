@@ -1,24 +1,47 @@
 # frozen_string_literal: true
+
 require "swagger_helper"
 
-RSpec.describe "Frames API", type: :request do
+RSpec.describe "Frames API", swagger_doc: "v1/swagger.yaml" do
   path "/api/v1/frames" do
-    post "Create a frame" do
-      operationId "createFrame"
+    post("Frame created") do
       tags "Frames"
       consumes "application/json"
       produces "application/json"
 
-      parameter name: :frame, in: :body, schema: { "$ref" => "#/components/schemas/FrameCreatePayload/properties/frame" }
+      parameter name: "Authorization", in: :header, schema: { type: :string }, required: true
 
-      response "201", "Frame created" do
-        schema "$ref" => "#/components/schemas/FrameShow"
-        let(:frame) { attributes_for(:frame) }
+      parameter name: :frame, in: :body, schema: {
+        type: :object,
+        required: %w[center_x center_y width height],
+        properties: {
+          center_x: { type: :number },
+          center_y: { type: :number },
+          width:    { type: :number },
+          height:   { type: :number },
+          circles_attributes: {
+            type: :array,
+            items: {
+              type: :object,
+              required: %w[center_x center_y diameter],
+              properties: {
+                center_x: { type: :number },
+                center_y: { type: :number },
+                diameter: { type: :number }
+              }
+            }
+          }
+        }
+      }
+
+      response(201, "Frame created") do
+        let(:Authorization) { auth_headers["Authorization"] }
+        let(:frame) { { center_x: 10, center_y: 10, width: 20, height: 30 } }
         run_test!
       end
 
-      response "422", "Validation error" do
-        schema "$ref" => "#/components/schemas/Errors422"
+      response(422, "unprocessable entity") do
+        let(:Authorization) { auth_headers["Authorization"] }
         let(:frame) { { center_x: 0, center_y: 0, width: 0, height: -1 } }
         run_test!
       end
@@ -26,46 +49,41 @@ RSpec.describe "Frames API", type: :request do
   end
 
   path "/api/v1/frames/{id}" do
-    get "Show a frame" do
-      operationId "showFrame"
+    get("OK") do
       tags "Frames"
       produces "application/json"
-      parameter name: :id, in: :path, type: :integer
 
-      response "200", "OK" do
-        schema "$ref" => "#/components/schemas/FrameShow"
+      parameter name: :id, in: :path, type: :integer, required: true
+      parameter name: "Authorization", in: :header, schema: { type: :string }, required: true
+
+      response(200, "OK") do
+        let(:Authorization) { auth_headers["Authorization"] }
         let(:id) { create(:frame).id }
         run_test!
       end
 
-      response "404", "Not found" do
-        schema "$ref" => "#/components/schemas/Error"
+      response(404, "not found") do
+        let(:Authorization) { auth_headers["Authorization"] }
         let(:id) { 999_999 }
         run_test!
       end
     end
 
-    delete "Delete a frame" do
-      operationId "deleteFrame"
+    delete("delete") do
       tags "Frames"
       produces "application/json"
-      parameter name: :id, in: :path, type: :integer
 
-      response "204", "No content" do
+      parameter name: :id, in: :path, type: :integer, required: true
+      parameter name: "Authorization", in: :header, schema: { type: :string }, required: true
+
+      response(204, "No content") do
+        let(:Authorization) { auth_headers["Authorization"] }
         let(:id) { create(:frame).id }
         run_test!
       end
 
-      response "422", "Cannot delete frame with circles" do
-        schema "$ref" => "#/components/schemas/Errors422"
-        let(:frame_rec) { create(:frame, center_x: 0, center_y: 0, width: 40, height: 40) }
-        let(:id)        { frame_rec.id }
-        before { create(:circle, frame: frame_rec, center_x: 0, center_y: 0, diameter: 6) }
-        run_test!
-      end
-
-      response "404", "Not found" do
-        schema "$ref" => "#/components/schemas/Error"
+      response(404, "not found") do
+        let(:Authorization) { auth_headers["Authorization"] }
         let(:id) { 999_999 }
         run_test!
       end

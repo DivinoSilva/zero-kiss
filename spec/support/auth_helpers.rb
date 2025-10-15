@@ -1,20 +1,23 @@
 # frozen_string_literal: true
+require "jwt"
 
 module AuthHelpers
   def auth_headers
-    passphrase = ENV["YOU_SHOW_NOT_PASS"] || raise("YOU_SHOW_NOT_PASS not set")
-    date_str   = Date.current.to_s
+    secret = ENV.fetch("JWT_SECRET", "secret")
+    iss    = ENV.fetch("JWT_ISS", "zerokiss")
+    aud    = ENV.fetch("JWT_AUD", "zerokiss-clients")
+    ttl    = ENV.fetch("JWT_TTL_SECONDS", "3600").to_i
 
-    post "/api/v1/auth/token", headers: {
-      "X-Passphrase" => passphrase,
-      "X-Date"       => date_str
+    now = Time.now.to_i
+    payload = {
+      sub: "spec-user",
+      iat: now,
+      exp: now + ttl,
+      iss: iss,
+      aud: aud
     }
 
-    unless response.success?
-      raise "Cannot obtain auth token (status=#{response.status} body=#{response.body})"
-    end
-
-    token = JSON.parse(response.body)["token"] or raise("Token missing in /auth/token response")
+    token = JWT.encode(payload, secret, "HS256")
     { "Authorization" => "Bearer #{token}" }
   end
 end
