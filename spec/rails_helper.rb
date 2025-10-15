@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "dotenv/load"
 require "spec_helper"
 ENV["RAILS_ENV"] ||= "test"
 require_relative "../config/environment"
@@ -7,8 +8,8 @@ abort("The Rails environment is running in production mode!") if Rails.env.produ
 
 require "rspec/rails"
 
-# Load support files (e.g., FactoryBot config, helpers)
-Rails.root.glob("spec/support/**/*.rb").sort.each { |f| require f }
+# Load support files (helpers, custom matchers, etc.)
+Dir[Rails.root.join("spec/support/**/*.rb")].sort.each { |f| require f }
 
 # Keep schema up to date for tests
 begin
@@ -18,16 +19,20 @@ rescue ActiveRecord::PendingMigrationError => e
 end
 
 RSpec.configure do |config|
-  # Fixtures directory (optional; keep if you use fixtures)
+  # Fixtures (optional)
   config.fixture_paths = [Rails.root.join("spec/fixtures")]
 
-  # DB transactions per example
+  # Transactions per example
   config.use_transactional_fixtures = true
 
-  # Nice defaults
+  # Infer spec type by file location (models, requests, etc.)
   config.infer_spec_type_from_file_location!
   config.filter_rails_from_backtrace!
 
-  # FactoryBot DSL (create, build, etc.)
+  # FactoryBot DSL
   config.include FactoryBot::Syntax::Methods
+
+  # Auth helper (JWT) for request specs and rswag integration specs
+  config.include AuthHelpers, type: :request
+  config.include AuthHelpers, file_path: %r{spec/integration}
 end
