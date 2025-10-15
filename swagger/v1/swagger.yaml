@@ -3,10 +3,331 @@ openapi: 3.0.3
 info:
   title: ZeroKiss API
   version: v1
+  description: API for Frames and Circles. Frames are axis-aligned rectangles in cm.
+    Circles must fully fit inside their frame and circles within the same frame must
+    not touch or overlap. Frames must not touch or overlap other frames.
 servers:
 - url: http://localhost:3000
-  description: local
+  description: Local development server
 paths:
+  "/api/v1/frames/{frame_id}/circles":
+    post:
+      summary: Create a circle in a frame
+      operationId: createCircle
+      tags:
+      - Circles
+      parameters:
+      - name: frame_id
+        in: path
+        description: Frame ID
+        required: true
+        schema:
+          type: integer
+      responses:
+        '201':
+          description: Circle created
+          content:
+            application/json:
+              examples:
+                example_0:
+                  value:
+                    id: 1
+                    frame_id: 1
+                    center_x: 0.0
+                    center_y: 0.0
+                    diameter: 2.0
+              schema:
+                "$ref": "#/components/schemas/Circle"
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              examples:
+                example_0:
+                  value:
+                    errors:
+                      base:
+                      - circle must be fully inside the frame
+              schema:
+                "$ref": "#/components/schemas/Errors422"
+        '404':
+          description: Frame not found
+          content:
+            application/json:
+              examples:
+                example_0:
+                  value:
+                    error: not found
+              schema:
+                "$ref": "#/components/schemas/Error"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/CircleCreatePayload"
+  "/api/v1/circles/{id}":
+    put:
+      summary: Update a circle
+      operationId: updateCircle
+      tags:
+      - Circles
+      parameters:
+      - name: id
+        in: path
+        description: Circle ID
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Circle updated
+          content:
+            application/json:
+              examples:
+                example_0:
+                  value:
+                    id: 1
+                    frame_id: 1
+                    center_x: 1.0
+                    center_y: 0.0
+                    diameter: 2.0
+              schema:
+                "$ref": "#/components/schemas/Circle"
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              examples:
+                example_0:
+                  value:
+                    errors:
+                      diameter:
+                      - must be greater than 0
+              schema:
+                "$ref": "#/components/schemas/Errors422"
+        '404':
+          description: Circle not found
+          content:
+            application/json:
+              examples:
+                example_0:
+                  value:
+                    error: not found
+              schema:
+                "$ref": "#/components/schemas/Error"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/CircleUpdatePayload"
+    delete:
+      summary: Delete a circle
+      operationId: deleteCircle
+      tags:
+      - Circles
+      parameters:
+      - name: id
+        in: path
+        description: Circle ID
+        required: true
+        schema:
+          type: integer
+      responses:
+        '204':
+          description: No content
+        '404':
+          description: Circle not found
+          content:
+            application/json:
+              examples:
+                example_0:
+                  value:
+                    error: not found
+              schema:
+                "$ref": "#/components/schemas/Error"
+  "/api/v1/circles":
+    get:
+      summary: Search circles by radius and optional frame_id
+      operationId: searchCircles
+      tags:
+      - Circles
+      parameters:
+      - name: center_x
+        in: query
+        schema:
+          type: number
+        description: Search center X
+      - name: center_y
+        in: query
+        schema:
+          type: number
+        description: Search center Y
+      - name: radius
+        in: query
+        schema:
+          type: number
+        description: Search radius
+      - name: frame_id
+        in: query
+        schema:
+          type: integer
+        description: Filter by frame
+      - name: page
+        in: query
+        schema:
+          type: integer
+          default: 1
+          minimum: 1
+        description: Page number
+      - name: per_page
+        in: query
+        schema:
+          type: integer
+          default: 50
+          minimum: 1
+          maximum: 200
+        description: Items per page
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              examples:
+                example_0:
+                  value:
+                  - id: 1
+                    frame_id: 1
+                    center_x: 0.0
+                    center_y: 0.0
+                    diameter: 2.0
+              schema:
+                type: array
+                items:
+                  "$ref": "#/components/schemas/Circle"
+  "/api/v1/frames":
+    post:
+      summary: Create a frame
+      operationId: createFrame
+      tags:
+      - Frames
+      parameters: []
+      responses:
+        '201':
+          description: Frame created
+          content:
+            application/json:
+              examples:
+                example_0:
+                  value:
+                    id: 1
+                    center_x: 0.0
+                    center_y: 0.0
+                    width: 10.0
+                    height: 10.0
+                    circles_count: 0
+                    circles: []
+              schema:
+                "$ref": "#/components/schemas/FrameShow"
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              examples:
+                example_0:
+                  value:
+                    errors:
+                      width:
+                      - must be greater than 0
+                      height:
+                      - must be greater than 0
+              schema:
+                "$ref": "#/components/schemas/Errors422"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/FrameCreatePayload"
+  "/api/v1/frames/{id}":
+    get:
+      summary: Show a frame
+      operationId: showFrame
+      tags:
+      - Frames
+      parameters:
+      - name: id
+        in: path
+        description: Frame ID
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              examples:
+                example_0:
+                  value:
+                    id: 1
+                    center_x: 0.0
+                    center_y: 0.0
+                    width: 10.0
+                    height: 10.0
+                    circles_count: 0
+                    circles: []
+                    topmost_circle:
+                    bottommost_circle:
+                    leftmost_circle:
+                    rightmost_circle:
+              schema:
+                "$ref": "#/components/schemas/FrameShow"
+        '404':
+          description: Not found
+          content:
+            application/json:
+              examples:
+                example_0:
+                  value:
+                    error: not found
+              schema:
+                "$ref": "#/components/schemas/Error"
+    delete:
+      summary: Delete a frame
+      operationId: deleteFrame
+      tags:
+      - Frames
+      parameters:
+      - name: id
+        in: path
+        description: Frame ID
+        required: true
+        schema:
+          type: integer
+      responses:
+        '204':
+          description: No content
+        '422':
+          description: Cannot delete frame with circles
+          content:
+            application/json:
+              examples:
+                example_0:
+                  value:
+                    errors:
+                      base:
+                      - Cannot delete record because dependent circles exist
+              schema:
+                "$ref": "#/components/schemas/Errors422"
+        '404':
+          description: Not found
+          content:
+            application/json:
+              examples:
+                example_0:
+                  value:
+                    error: not found
+              schema:
+                "$ref": "#/components/schemas/Error"
   "/healthz":
     get:
       summary: Health check
@@ -42,11 +363,12 @@ components:
           - validation error
     Frame:
       type: object
-      description: 'Frame (retângulo em cm). Regra: frames não podem tocar/sobrepor
-        (422).'
+      description: 'Frame rectangle in cm. Rule: frames must not touch or overlap
+        another frame. Returns 422 on violation.'
       properties:
         id:
           type: integer
+          example: 1
         center_x:
           type: number
           format: float
@@ -108,7 +430,7 @@ components:
               example: 30.0
             circles_attributes:
               type: array
-              description: Criação aninhada (transação atômica).
+              description: Nested circle creation. All-or-nothing atomic transaction.
               items:
                 type: object
                 required:
@@ -119,33 +441,42 @@ components:
                   center_x:
                     type: number
                     format: float
+                    example: 0.0
                   center_y:
                     type: number
                     format: float
+                    example: 0.0
                   diameter:
                     type: number
                     format: float
                     minimum: 0
                     exclusiveMinimum: true
-          description: Se o novo frame tocar/sobrepor outro, retorna 422.
+                    example: 5.0
+          description: If the new frame touches or overlaps another frame, returns
+            422.
     Circle:
       type: object
       properties:
         id:
           type: integer
+          example: 1
         frame_id:
           type: integer
+          example: 1
         center_x:
           type: number
           format: float
+          example: 0.0
         center_y:
           type: number
           format: float
+          example: 0.0
         diameter:
           type: number
           format: float
           minimum: 0
           exclusiveMinimum: true
+          example: 5.0
       required:
       - id
       - frame_id
@@ -167,16 +498,19 @@ components:
             center_x:
               type: number
               format: float
+              example: 0.0
             center_y:
               type: number
               format: float
+              example: 0.0
             diameter:
               type: number
               format: float
               minimum: 0
               exclusiveMinimum: true
-          description: Deve caber no frame e não tocar/sobrepor outros círculos do
-            mesmo frame.
+              example: 2.0
+          description: Must fully fit inside the frame and must not touch or overlap
+            any other circle in the same frame.
     CircleUpdatePayload:
       type: object
       required:
@@ -188,15 +522,18 @@ components:
             center_x:
               type: number
               format: float
+              example: 1.0
             center_y:
               type: number
               format: float
+              example: 1.0
             diameter:
               type: number
               format: float
               minimum: 0
               exclusiveMinimum: true
-          description: Mesmas regras de validação da criação.
+              example: 3.0
+          description: Same validations as creation.
     FrameShow:
       allOf:
       - "$ref": "#/components/schemas/Frame"
@@ -204,6 +541,7 @@ components:
         properties:
           circles_count:
             type: integer
+            example: 3
           topmost_circle:
             "$ref": "#/components/schemas/Circle"
           bottommost_circle:
