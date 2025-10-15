@@ -8,26 +8,27 @@ RSpec.configure do |config|
     "v1/swagger.yaml" => {
       openapi: "3.0.3",
       info: {
-        title:       "ZeroKiss API",
-        version:     "v1",
-        description: "API for Frames and Circles. Frames are axis-aligned rectangles in cm. " \
-                     "Circles must fully fit inside their frame and circles within the same frame " \
-                     "must not touch or overlap. Frames must not touch or overlap other frames."
+        title:   "ZeroKiss API",
+        version: "v1"
       },
       servers: [
-        { url: "http://localhost:3000", description: "Local development server" }
+        { url: "http://localhost:3000", description: "local" }
       ],
       paths: {},
       components: {
+        securitySchemes: {
+          bearerAuth: {
+            type: :http,
+            scheme: :bearer,
+            bearerFormat: :JWT
+          }
+        },
         schemas: {
           Error: {
             type: :object,
-            properties: {
-              error: { type: :string, example: "not found" }
-            },
+            properties: { error: { type: :string, example: "not found" } },
             required: ["error"]
           },
-
           Errors422: {
             type: :object,
             properties: {
@@ -42,9 +43,9 @@ RSpec.configure do |config|
 
           Frame: {
             type: :object,
-            description: "Frame rectangle in cm. Rule: frames must not touch or overlap another frame. Returns 422 on violation.",
+            description: "Frame (rectangle in cm). Rule: frames must not touch/overlap (422).",
             properties: {
-              id:        { type: :integer, example: 1 },
+              id:        { type: :integer },
               center_x:  { type: :number, format: :float, example: 10.0 },
               center_y:  { type: :number, format: :float, example: 10.0 },
               width:     { type: :number, format: :float, minimum: 0, exclusiveMinimum: true, example: 20.0 },
@@ -52,7 +53,6 @@ RSpec.configure do |config|
             },
             required: %i[id center_x center_y width height]
           },
-
           FrameCreatePayload: {
             type: :object,
             required: ["frame"],
@@ -67,35 +67,33 @@ RSpec.configure do |config|
                   height:   { type: :number, format: :float, minimum: 0, exclusiveMinimum: true, example: 30.0 },
                   circles_attributes: {
                     type: :array,
-                    description: "Nested circle creation. All-or-nothing atomic transaction.",
+                    description: "Nested create (atomic transaction).",
                     items: {
                       type: :object,
                       required: %w[center_x center_y diameter],
                       properties: {
-                        center_x: { type: :number, format: :float, example: 0.0 },
-                        center_y: { type: :number, format: :float, example: 0.0 },
-                        diameter: { type: :number, format: :float, minimum: 0, exclusiveMinimum: true, example: 5.0 }
+                        center_x: { type: :number, format: :float },
+                        center_y: { type: :number, format: :float },
+                        diameter: { type: :number, format: :float, minimum: 0, exclusiveMinimum: true }
                       }
                     }
                   }
                 },
-                description: "If the new frame touches or overlaps another frame, returns 422."
+                description: "If the new frame touches/overlaps another, returns 422."
               }
             }
           },
-
           Circle: {
             type: :object,
             properties: {
-              id:       { type: :integer, example: 1 },
-              frame_id: { type: :integer, example: 1 },
-              center_x: { type: :number, format: :float, example: 0.0 },
-              center_y: { type: :number, format: :float, example: 0.0 },
-              diameter: { type: :number, format: :float, minimum: 0, exclusiveMinimum: true, example: 5.0 }
+              id:       { type: :integer },
+              frame_id: { type: :integer },
+              center_x: { type: :number, format: :float },
+              center_y: { type: :number, format: :float },
+              diameter: { type: :number, format: :float, minimum: 0, exclusiveMinimum: true }
             },
             required: %i[id frame_id center_x center_y diameter]
           },
-
           CircleCreatePayload: {
             type: :object,
             required: ["circle"],
@@ -104,15 +102,14 @@ RSpec.configure do |config|
                 type: :object,
                 required: %w[center_x center_y diameter],
                 properties: {
-                  center_x: { type: :number, format: :float, example: 0.0 },
-                  center_y: { type: :number, format: :float, example: 0.0 },
-                  diameter: { type: :number, format: :float, minimum: 0, exclusiveMinimum: true, example: 2.0 }
+                  center_x: { type: :number, format: :float },
+                  center_y: { type: :number, format: :float },
+                  diameter: { type: :number, format: :float, minimum: 0, exclusiveMinimum: true }
                 },
-                description: "Must fully fit inside the frame and must not touch or overlap any other circle in the same frame."
+                description: "Must fit inside frame and not touch/overlap other circles in the same frame."
               }
             }
           },
-
           CircleUpdatePayload: {
             type: :object,
             required: ["circle"],
@@ -120,26 +117,25 @@ RSpec.configure do |config|
               circle: {
                 type: :object,
                 properties: {
-                  center_x: { type: :number, format: :float, example: 1.0 },
-                  center_y: { type: :number, format: :float, example: 1.0 },
-                  diameter: { type: :number, format: :float, minimum: 0, exclusiveMinimum: true, example: 3.0 }
+                  center_x: { type: :number, format: :float },
+                  center_y: { type: :number, format: :float },
+                  diameter: { type: :number, format: :float, minimum: 0, exclusiveMinimum: true }
                 },
-                description: "Same validations as creation."
+                description: "Same validation rules as create."
               }
             }
           },
-
           FrameShow: {
             allOf: [
               { "$ref": "#/components/schemas/Frame" },
               {
                 type: :object,
                 properties: {
-                  circles_count:     { type: :integer, example: 3 },
-                  topmost_circle:    { "$ref": "#/components/schemas/Circle", nullable: true },
-                  bottommost_circle: { "$ref": "#/components/schemas/Circle", nullable: true },
-                  leftmost_circle:   { "$ref": "#/components/schemas/Circle", nullable: true },
-                  rightmost_circle:  { "$ref": "#/components/schemas/Circle", nullable: true },
+                  circles_count:     { type: :integer },
+                  topmost_circle:    { oneOf: [{ "$ref": "#/components/schemas/Circle" }, { type: :null }] },
+                  bottommost_circle: { oneOf: [{ "$ref": "#/components/schemas/Circle" }, { type: :null }] },
+                  leftmost_circle:   { oneOf: [{ "$ref": "#/components/schemas/Circle" }, { type: :null }] },
+                  rightmost_circle:  { oneOf: [{ "$ref": "#/components/schemas/Circle" }, { type: :null }] },
                   circles: {
                     type: :array,
                     items: { "$ref": "#/components/schemas/Circle" }
