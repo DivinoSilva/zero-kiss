@@ -35,7 +35,7 @@ module Api
       def set_frame
         @frame = Frame.find(params[:id])
       rescue ActiveRecord::RecordNotFound
-        render json: { error: "not found" }, status: :not_found
+        render(json: { error: "not found" }, status: :not_found) && return
       end
 
       def frame_params

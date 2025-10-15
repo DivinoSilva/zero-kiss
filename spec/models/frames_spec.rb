@@ -1,5 +1,4 @@
 # frozen_string_literal: true
-
 require "rails_helper"
 
 RSpec.describe Frame, type: :model do
@@ -7,7 +6,7 @@ RSpec.describe Frame, type: :model do
     it "requires center_x, center_y, width, height" do
       frame = build(:frame, center_x: nil, center_y: nil, width: nil, height: nil)
       expect(frame).to be_invalid
-      expect(frame.errors.keys).to include(:center_x, :center_y, :width, :height)
+      expect(frame.errors.attribute_names).to include(:center_x, :center_y, :width, :height)
     end
 
     it "requires width and height to be positive" do

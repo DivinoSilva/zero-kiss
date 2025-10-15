@@ -15,7 +15,7 @@ module Api
       end
 
       def create
-        frame = Frame.find(params[:frame_id])
+        frame  = Frame.find(params[:frame_id])
         circle = frame.circles.build(circle_params)
 
         frame.with_lock do
@@ -42,8 +42,8 @@ module Api
       def destroy
         @circle.frame.with_lock { @circle.destroy! }
         head :no_content
-      rescue ActiveRecord::RecordNotFound
-        render json: { error: "not found" }, status: :not_found
+      rescue ActiveRecord::RecordNotDestroyed
+        render json: { errors: @circle.errors.to_hash(true) }, status: :unprocessable_entity
       end
 
       private
@@ -51,7 +51,7 @@ module Api
       def set_circle
         @circle = Circle.find(params[:id])
       rescue ActiveRecord::RecordNotFound
-        render json: { error: "not found" }, status: :not_found
+        render(json: { error: "not found" }, status: :not_found) && return
       end
 
       def circle_params
