@@ -1,4 +1,3 @@
-# app/controllers/api/v1/circles_controller.rb
 # frozen_string_literal: true
 
 module Api
