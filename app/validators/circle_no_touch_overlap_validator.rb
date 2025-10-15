@@ -2,7 +2,10 @@
 
 class CircleNoTouchOverlapValidator < ActiveModel::Validator
   def validate(record)
-    return unless record.frame_id.present? && record.diameter.present?
+    return unless record.frame_id.present? &&
+                  record.diameter.present? &&
+                  record.center_x.present? &&
+                  record.center_y.present?
 
     r     = record.diameter.to_d / 2
     min_x = record.center_x.to_d - r

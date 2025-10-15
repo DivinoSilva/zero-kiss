@@ -73,6 +73,7 @@ RSpec.describe "Frames API", type: :request do
         get "/api/v1/frames/#{frame.id}"
         expect(response).to have_http_status(:ok)
         expect(json["id"]).to eq(frame.id)
+        expect(json).to include("circles_count")
       end
     end
 
@@ -86,7 +87,17 @@ RSpec.describe "Frames API", type: :request do
   end
 
   describe "DELETE /api/v1/frames/:id" do
-    context "when the frame exists" do
+    context "when the frame has circles" do
+      it "returns 422 with errors" do
+        frame = create(:frame, center_x: 0, center_y: 0, width: 10, height: 10)
+        create(:circle, frame:, center_x: 0, center_y: 0, diameter: 2)
+        delete "/api/v1/frames/#{frame.id}"
+        expect(response).to have_http_status(:unprocessable_entity)
+        expect(json).to have_key("errors")
+      end
+    end
+
+    context "when the frame exists and has no circles" do
       let!(:frame) { create(:frame) }
 
       it "deletes and returns 204" do

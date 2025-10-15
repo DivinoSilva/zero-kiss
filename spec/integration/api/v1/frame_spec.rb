@@ -15,9 +15,9 @@ RSpec.describe "Frames API", type: :request do
 
       response "201", "Frame created" do
         schema "$ref" => "#/components/schemas/FrameShow"
-        let(:payload) { { frame: { center_x: 0, center_y: 0, width: 10, height: 10 } } }
+        let(:payload) { { frame: attributes_for(:frame) } }
         examples "application/json" => {
-          id: 1, center_x: 0.0, center_y: 0.0, width: 10.0, height: 10.0,
+          id: 1, center_x: 10.0, center_y: 10.0, width: 20.0, height: 30.0,
           circles_count: 0, circles: []
         }
         run_test!
@@ -43,9 +43,9 @@ RSpec.describe "Frames API", type: :request do
 
       response "200", "OK" do
         schema "$ref" => "#/components/schemas/FrameShow"
-        let(:id) { Frame.create!(center_x: 0, center_y: 0, width: 10, height: 10).id }
+        let(:id) { create(:frame).id }
         examples "application/json" => {
-          id: 1, center_x: 0.0, center_y: 0.0, width: 10.0, height: 10.0,
+          id: 1, center_x: 10.0, center_y: 10.0, width: 20.0, height: 30.0,
           circles_count: 0, circles: [],
           topmost_circle: nil, bottommost_circle: nil, leftmost_circle: nil, rightmost_circle: nil
         }
@@ -67,19 +67,15 @@ RSpec.describe "Frames API", type: :request do
       parameter name: :id, in: :path, type: :integer, description: "Frame ID"
 
       response "204", "No content" do
-        let(:id) { Frame.create!(center_x: 0, center_y: 0, width: 10, height: 10).id }
+        let(:id) { create(:frame).id }
         run_test!
       end
 
       response "422", "Cannot delete frame with circles" do
         schema "$ref" => "#/components/schemas/Errors422"
-        let(:frame) { Frame.create!(center_x: 0, center_y: 0, width: 10, height: 10) }
+        let(:frame) { create(:frame) }
         let(:id)    { frame.id }
-
-        before do
-          frame.circles.create!(center_x: 0, center_y: 0, diameter: 2)
-        end
-
+        before { create(:circle, frame:) }
         examples "application/json" => {
           errors: { base: ["Cannot delete record because dependent circles exist"] }
         }

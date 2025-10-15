@@ -136,10 +136,10 @@ RSpec.configure do |config|
                 type: :object,
                 properties: {
                   circles_count:     { type: :integer, example: 3 },
-                  topmost_circle:    { "$ref": "#/components/schemas/Circle" },
-                  bottommost_circle: { "$ref": "#/components/schemas/Circle" },
-                  leftmost_circle:   { "$ref": "#/components/schemas/Circle" },
-                  rightmost_circle:  { "$ref": "#/components/schemas/Circle" },
+                  topmost_circle:    { "$ref": "#/components/schemas/Circle", nullable: true },
+                  bottommost_circle: { "$ref": "#/components/schemas/Circle", nullable: true },
+                  leftmost_circle:   { "$ref": "#/components/schemas/Circle", nullable: true },
+                  rightmost_circle:  { "$ref": "#/components/schemas/Circle", nullable: true },
                   circles: {
                     type: :array,
                     items: { "$ref": "#/components/schemas/Circle" }

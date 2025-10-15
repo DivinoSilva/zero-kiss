@@ -544,12 +544,16 @@ components:
             example: 3
           topmost_circle:
             "$ref": "#/components/schemas/Circle"
+            nullable: true
           bottommost_circle:
             "$ref": "#/components/schemas/Circle"
+            nullable: true
           leftmost_circle:
             "$ref": "#/components/schemas/Circle"
+            nullable: true
           rightmost_circle:
             "$ref": "#/components/schemas/Circle"
+            nullable: true
           circles:
             type: array
             items:

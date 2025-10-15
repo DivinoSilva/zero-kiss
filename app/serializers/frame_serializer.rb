@@ -22,6 +22,7 @@ class FrameSerializer < ActiveModel::Serializer
 
   def serialize_circle(circle)
     return nil unless circle
-    { id: circle.id, center_x: circle.center_x.to_f, center_y: circle.center_y.to_f, diameter: circle.diameter.to_f }
+
+    CircleSerializer.new(circle).as_json
   end
 end

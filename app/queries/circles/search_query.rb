@@ -6,30 +6,33 @@ module Circles
       rel = Circle.all
       rel = rel.where(frame_id: filters[:frame_id]) if filters[:frame_id].present?
 
-      if filters[:center_x].present? && filters[:center_y].present? && filters[:radius].present?
-        cx = BigDecimal(filters[:center_x].to_s)
-        cy = BigDecimal(filters[:center_y].to_s)
-        r  = BigDecimal(filters[:radius].to_s)
+      cx = filters[:center_x]
+      cy = filters[:center_y]
+      r  = filters[:radius]
 
-        min_x, max_x = cx - r, cx + r
-        min_y, max_y = cy - r, cy + r
+      return rel unless cx.present? && cy.present? && r.present?
 
-        rel = rel.where(<<~SQL, min_x:, max_x:, min_y:, max_y:)
-          NOT (
-            :max_x < (center_x - diameter/2.0) OR
-            :min_x > (center_x + diameter/2.0) OR
-            :max_y < (center_y - diameter/2.0) OR
-            :min_y > (center_y + diameter/2.0)
-          )
-        SQL
+      cx = BigDecimal(cx.to_s)
+      cy = BigDecimal(cy.to_s)
+      r  = BigDecimal(r.to_s)
 
-        rel = rel.where(<<~SQL, cx: cx.to_f, cy: cy.to_f, r: r.to_f)
-          ( (:r - diameter/2.0) >= 0 ) AND
-          ( (center_x - :cx)^2 + (center_y - :cy)^2 ) <= (:r - diameter/2.0)^2
-        SQL
-      end
+      min_x, max_x = cx - r, cx + r
+      min_y, max_y = cy - r, cy + r
 
-      rel
+      rel = rel.where(<<~SQL, min_x:, max_x:, min_y:, max_y:)
+        NOT (
+          :max_x < (center_x - diameter/2.0) OR
+          :min_x > (center_x + diameter/2.0) OR
+          :max_y < (center_y - diameter/2.0) OR
+          :min_y > (center_y + diameter/2.0)
+        )
+      SQL
+
+      rel.where(<<~SQL, cx: cx.to_f, cy: cy.to_f, r: r.to_f)
+        (:r - diameter/2.0) >= 0 AND
+        ((center_x - :cx)*(center_x - :cx) + (center_y - :cy)*(center_y - :cy))
+          <= (:r - diameter/2.0)*(:r - diameter/2.0)
+      SQL
     end
   end
 end
