@@ -1,5 +1,3 @@
-Você tem razão — ficou confuso antes. Aqui vai **um único bloco Markdown**, completo, com **todos os itens** e os blocos de código corretamente fechados:
-
 ````markdown
 # ZeroKiss
 
@@ -205,3 +203,4 @@ MIT
 git add README.md
 git commit -m "docs(readme): single-file markdown with complete sections, atomicity, Justfile commands, endpoints and troubleshooting"
 ````
+
