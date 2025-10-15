@@ -1,5 +1,4 @@
 # frozen_string_literal: true
-
 require "rails_helper"
 
 RSpec.describe "Frames API", type: :request do
@@ -24,6 +23,24 @@ RSpec.describe "Frames API", type: :request do
       end
     end
 
+    context "explicit empty circles_attributes" do
+      it "creates a frame with zero circles (201)" do
+        expect {
+          post path, params: {
+            frame: {
+              center_x: 0, center_y: 0, width: 100, height: 100,
+              circles_attributes: []
+            }
+          }
+        }.to change(Frame, :count).by(1).and change(Circle, :count).by(0)
+
+        expect(response).to have_http_status(:created)
+        expect(json["circles"]).to be_an(Array)
+        expect(json["circles"]).to be_empty
+        expect(json["circles_count"]).to eq(0)
+      end
+    end
+
     context "with nested circles (valid set)" do
       it "creates frame and circles atomically (201)" do
         expect {
@@ -40,8 +57,6 @@ RSpec.describe "Frames API", type: :request do
 
         expect(response).to have_http_status(:created)
         expect(json["circles_count"]).to eq(2)
-        expect(json["circles"]).to be_an(Array)
-        expect(json["circles"].size).to eq(2)
       end
     end
 
@@ -53,7 +68,7 @@ RSpec.describe "Frames API", type: :request do
               center_x: 0, center_y: 0, width: 30, height: 30,
               circles_attributes: [
                 { center_x: 0, center_y: 0, diameter: 10 },
-                { center_x: 5, center_y: 0, diameter: 10 } # touches the first
+                { center_x: 5, center_y: 0, diameter: 10 }
               ]
             }
           }

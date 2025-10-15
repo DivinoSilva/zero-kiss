@@ -51,7 +51,7 @@ module Api
       def set_circle
         @circle = Circle.find(params[:id])
       rescue ActiveRecord::RecordNotFound
-        render json: { error: "not found" }, status: :not_found
+        render(json: { error: "not found" }, status: :not_found) && return
       end
 
       def circle_params
