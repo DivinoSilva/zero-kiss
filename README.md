@@ -1,4 +1,3 @@
-````markdown
 # ZeroKiss
 
 Rails 7.2 (API-only) + Ruby 3.3 + Postgres + RSpec, running in Docker.  
@@ -196,11 +195,4 @@ just dev-swaggerize
 
 MIT
 
-````
-
-**Commit pronto:**
-```bash
-git add README.md
-git commit -m "docs(readme): single-file markdown with complete sections, atomicity, Justfile commands, endpoints and troubleshooting"
-````
 
