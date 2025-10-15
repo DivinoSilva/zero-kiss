@@ -6,20 +6,43 @@ RSpec.configure do |config|
 
   config.openapi_specs = {
     "v1/swagger.yaml" => {
-      openapi: "3.0.1",
-      info: { title: "ZeroKiss API", version: "v1" },
+      openapi: "3.0.3",
+      info: {
+        title:   "ZeroKiss API",
+        version: "v1"
+      },
+      servers: [
+        { url: "http://localhost:3000", description: "local" }
+      ],
       paths: {},
       components: {
         schemas: {
+          Error: {
+            type: :object,
+            properties: { error: { type: :string, example: "not found" } },
+            required: ["error"]
+          },
+          Errors422: {
+            type: :object,
+            properties: {
+              errors: {
+                type: :object,
+                additionalProperties: { type: :array, items: { type: :string } }
+              }
+            },
+            required: ["errors"],
+            example: { errors: { base: ["validation error"] } }
+          },
+
           Frame: {
             type: :object,
-            description: "A frame rectangle in centimeters. Business rule: frames must NOT touch or overlap; violations return 422.",
+            description: "Frame (retângulo em cm). Regra: frames não podem tocar/sobrepor (422).",
             properties: {
-              id: { type: :integer },
-              center_x: { type: :number, format: :float, example: 10.0 },
-              center_y: { type: :number, format: :float, example: 10.0 },
-              width:    { type: :number, format: :float, minimum: 0, exclusiveMinimum: true, example: 20.0 },
-              height:   { type: :number, format: :float, minimum: 0, exclusiveMinimum: true, example: 30.0 }
+              id:        { type: :integer },
+              center_x:  { type: :number, format: :float, example: 10.0 },
+              center_y:  { type: :number, format: :float, example: 10.0 },
+              width:     { type: :number, format: :float, minimum: 0, exclusiveMinimum: true, example: 20.0 },
+              height:    { type: :number, format: :float, minimum: 0, exclusiveMinimum: true, example: 30.0 }
             },
             required: %i[id center_x center_y width height]
           },
@@ -34,20 +57,33 @@ RSpec.configure do |config|
                   center_x: { type: :number, format: :float, example: 10.0 },
                   center_y: { type: :number, format: :float, example: 10.0 },
                   width:    { type: :number, format: :float, minimum: 0, exclusiveMinimum: true, example: 20.0 },
-                  height:   { type: :number, format: :float, minimum: 0, exclusiveMinimum: true, example: 30.0 }
+                  height:   { type: :number, format: :float, minimum: 0, exclusiveMinimum: true, example: 30.0 },
+                  circles_attributes: {
+                    type: :array,
+                    description: "Criação aninhada (transação atômica).",
+                    items: {
+                      type: :object,
+                      required: %w[center_x center_y diameter],
+                      properties: {
+                        center_x: { type: :number, format: :float },
+                        center_y: { type: :number, format: :float },
+                        diameter: { type: :number, format: :float, minimum: 0, exclusiveMinimum: true }
+                      }
+                    }
+                  }
                 },
-                description: "If the new frame would touch/overlap another frame, server responds 422."
+                description: "Se o novo frame tocar/sobrepor outro, retorna 422."
               }
             }
           },
           Circle: {
             type: :object,
             properties: {
-              id: { type: :integer },
+              id:       { type: :integer },
               frame_id: { type: :integer },
-              center_x: { type: :number, format: :float, example: 10.0 },
-              center_y: { type: :number, format: :float, example: 10.0 },
-              diameter: { type: :number, format: :float, minimum: 0, exclusiveMinimum: true, example: 6.0 }
+              center_x: { type: :number, format: :float },
+              center_y: { type: :number, format: :float },
+              diameter: { type: :number, format: :float, minimum: 0, exclusiveMinimum: true }
             },
             required: %i[id frame_id center_x center_y diameter]
           },
@@ -62,7 +98,8 @@ RSpec.configure do |config|
                   center_x: { type: :number, format: :float },
                   center_y: { type: :number, format: :float },
                   diameter: { type: :number, format: :float, minimum: 0, exclusiveMinimum: true }
-                }
+                },
+                description: "Deve caber no frame e não tocar/sobrepor outros círculos do mesmo frame."
               }
             }
           },
@@ -77,25 +114,28 @@ RSpec.configure do |config|
                   center_y: { type: :number, format: :float },
                   diameter: { type: :number, format: :float, minimum: 0, exclusiveMinimum: true }
                 },
-                description: "At least one attribute must be present."
+                description: "Mesmas regras de validação da criação."
               }
             }
           },
-          Errors422: {
-            type: :object,
-            properties: {
-              errors: {
+          FrameShow: {
+            allOf: [
+              { "$ref": "#/components/schemas/Frame" },
+              {
                 type: :object,
-                additionalProperties: { type: :array, items: { type: :string } }
+                properties: {
+                  circles_count:     { type: :integer },
+                  topmost_circle:    { "$ref": "#/components/schemas/Circle" },
+                  bottommost_circle: { "$ref": "#/components/schemas/Circle" },
+                  leftmost_circle:   { "$ref": "#/components/schemas/Circle" },
+                  rightmost_circle:  { "$ref": "#/components/schemas/Circle" },
+                  circles: {
+                    type: :array,
+                    items: { "$ref": "#/components/schemas/Circle" }
+                  }
+                }
               }
-            },
-            required: ["errors"],
-            example: { errors: { base: ["frames cannot touch or overlap"] } }
-          },
-          Error: {
-            type: :object,
-            properties: { error: { type: :string, example: "not found" } },
-            required: ["error"]
+            ]
           }
         }
       }
