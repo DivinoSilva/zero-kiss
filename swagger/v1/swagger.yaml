@@ -35,7 +35,7 @@ paths:
                     frame_id: 1
                     center_x: 0.0
                     center_y: 0.0
-                    diameter: 2.0
+                    diameter: 6.0
               schema:
                 "$ref": "#/components/schemas/Circle"
         '422':
@@ -90,7 +90,7 @@ paths:
                     frame_id: 1
                     center_x: 1.0
                     center_y: 0.0
-                    diameter: 2.0
+                    diameter: 6.0
               schema:
                 "$ref": "#/components/schemas/Circle"
         '422':
@@ -157,21 +157,25 @@ paths:
         schema:
           type: number
         description: Search center X
+        required: false
       - name: center_y
         in: query
         schema:
           type: number
         description: Search center Y
+        required: false
       - name: radius
         in: query
         schema:
           type: number
         description: Search radius
+        required: false
       - name: frame_id
         in: query
         schema:
           type: integer
         description: Filter by frame
+        required: false
       - name: page
         in: query
         schema:
@@ -179,6 +183,7 @@ paths:
           default: 1
           minimum: 1
         description: Page number
+        required: false
       - name: per_page
         in: query
         schema:
@@ -187,6 +192,7 @@ paths:
           minimum: 1
           maximum: 200
         description: Items per page
+        required: false
       responses:
         '200':
           description: OK
@@ -199,7 +205,7 @@ paths:
                     frame_id: 1
                     center_x: 0.0
                     center_y: 0.0
-                    diameter: 2.0
+                    diameter: 6.0
               schema:
                 type: array
                 items:
@@ -220,10 +226,10 @@ paths:
                 example_0:
                   value:
                     id: 1
-                    center_x: 0.0
-                    center_y: 0.0
-                    width: 10.0
-                    height: 10.0
+                    center_x: 10.0
+                    center_y: 10.0
+                    width: 20.0
+                    height: 30.0
                     circles_count: 0
                     circles: []
               schema:
@@ -269,10 +275,10 @@ paths:
                 example_0:
                   value:
                     id: 1
-                    center_x: 0.0
-                    center_y: 0.0
-                    width: 10.0
-                    height: 10.0
+                    center_x: 10.0
+                    center_y: 10.0
+                    width: 20.0
+                    height: 30.0
                     circles_count: 0
                     circles: []
                     topmost_circle:
