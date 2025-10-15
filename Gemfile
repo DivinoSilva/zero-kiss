@@ -5,6 +5,7 @@ gem "active_model_serializers", "~> 0.10"
 gem "bootsnap", require: false
 gem "debug", platforms: [:mri, :mingw, :x64_mingw, :mswin]
 gem "dotenv-rails", groups: [:development, :test]
+gem "jwt", "~> 2.8"
 gem "pg", "~> 1.5"
 gem "puma", ">= 5.0"
 gem "rack-cors", "~> 2.0"
