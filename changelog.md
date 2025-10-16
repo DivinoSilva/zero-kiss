@@ -1,0 +1,33 @@
+## [0.1.0] - 2025-10-16
+### Added
+- Rails 7.2 API-only app with Ruby 3.3 and Postgres running in Docker.
+- Health check endpoint at `GET /healthz`.
+- JWT authentication flow:
+  - `POST /api/v1/auth/token` accepts header `X-Passphrase: <secret>-YYYY-MM-DD` and returns `{ token, exp }`.
+  - Protected endpoints require header `Authorization: Bearer <token>`.
+- Frames domain:
+  - `POST /api/v1/frames` with optional `circles_attributes` (atomic transaction).
+  - `GET /api/v1/frames/:id` returns frame, `circles_count`, extremal circles and circles list.
+  - `DELETE /api/v1/frames/:id` with validation to prevent deletion when circles exist.
+- Circles domain:
+  - `POST /api/v1/frames/:frame_id/circles` to create a circle inside a frame.
+  - `PUT /api/v1/circles/:id` to update a circle.
+  - `DELETE /api/v1/circles/:id` to delete a circle.
+  - `GET /api/v1/circles` with filters `frame_id`, `(center_x, center_y, radius)` and pagination `page`, `per_page`.
+- Business rules and validations:
+  - Frames must not touch or overlap any other frame.
+  - Circles must fit entirely inside the frame and must not touch or overlap other circles in the same frame.
+  - Search returns circles fully inside the given radius.
+- Database constraints:
+  - Exclusion constraints with GiST over `numrange` to prevent touching or overlapping frames.
+  - Supporting ranges for circle bounding boxes.
+- Documentation:
+  - RSwag configured with OpenAPI 3.
+  - Swagger UI served at `/api-docs`.
+  - Security scheme `bearerAuth` with global security requirement.
+- Tooling:
+  - RSpec test suite for requests and models.
+  - Justfile with common developer commands.
+  - Docker Compose for development and test environments.
+- Security
+  - JWT bearer authentication added to protect API operations.
