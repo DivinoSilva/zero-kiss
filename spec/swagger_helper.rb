@@ -20,7 +20,8 @@ RSpec.configure do |config|
           bearerAuth: {
             type: :http,
             scheme: :bearer,
-            bearerFormat: :JWT
+            bearerFormat: :JWT,
+            description: "Paste only the token in the Authorize dialog. The UI will send `Authorization: Bearer <token>` automatically."
           }
         },
         schemas: {
@@ -43,7 +44,7 @@ RSpec.configure do |config|
 
           Frame: {
             type: :object,
-            description: "Frame (rectangle in cm). Rule: frames must not touch/overlap (422).",
+            description: "Frame (rectangle in cm). Rule: frames must not touch or overlap. If they do, API returns 422.",
             properties: {
               id:        { type: :integer },
               center_x:  { type: :number, format: :float, example: 10.0 },
@@ -67,7 +68,7 @@ RSpec.configure do |config|
                   height:   { type: :number, format: :float, minimum: 0, exclusiveMinimum: true, example: 30.0 },
                   circles_attributes: {
                     type: :array,
-                    description: "Nested create (atomic transaction).",
+                    description: "Nested create in an atomic transaction.",
                     items: {
                       type: :object,
                       required: %w[center_x center_y diameter],
@@ -79,7 +80,7 @@ RSpec.configure do |config|
                     }
                   }
                 },
-                description: "If the new frame touches/overlaps another, returns 422."
+                description: "If the new frame touches or overlaps another, API returns 422."
               }
             }
           },
@@ -106,7 +107,7 @@ RSpec.configure do |config|
                   center_y: { type: :number, format: :float },
                   diameter: { type: :number, format: :float, minimum: 0, exclusiveMinimum: true }
                 },
-                description: "Must fit inside frame and not touch/overlap other circles in the same frame."
+                description: "Must fit inside the frame and must not touch or overlap other circles in the same frame."
               }
             }
           },
@@ -145,7 +146,8 @@ RSpec.configure do |config|
             ]
           }
         }
-      }
+      },
+      security: [{ bearerAuth: [] }]
     }
   }
 

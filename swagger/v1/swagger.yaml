@@ -7,22 +7,42 @@ servers:
 - url: http://localhost:3000
   description: local
 paths:
+  "/api/v1/auth/token":
+    post:
+      summary: Get JWT token
+      tags:
+      - Auth
+      description: 'Send header `X-Passphrase: <secret>-YYYY-MM-DD`. Response body
+        contains `{ token, exp }`. Click Authorize and paste only the token for subsequent
+        requests.'
+      security: []
+      parameters:
+      - name: X-Passphrase
+        in: header
+        schema:
+          type: string
+        required: true
+        description: 'Format: <secret>-YYYY-MM-DD'
+      responses:
+        '200':
+          description: OK
+        '401':
+          description: unauthorized
   "/api/v1/frames/{frame_id}/circles":
     post:
       summary: Circle created
       tags:
       - Circles
+      security:
+      - bearerAuth: []
+      description: Requires JWT. Use **Authorize** (bearerAuth) and paste the token
+        **without** `Bearer`.
       parameters:
       - name: frame_id
         in: path
         required: true
         schema:
           type: integer
-      - name: Authorization
-        in: header
-        schema:
-          type: string
-        required: true
       responses:
         '201':
           description: Circle created
@@ -51,17 +71,16 @@ paths:
       summary: Circle updated
       tags:
       - Circles
+      security:
+      - bearerAuth: []
+      description: Requires JWT. Use **Authorize** (bearerAuth) and paste token **without**
+        `Bearer`.
       parameters:
       - name: id
         in: path
         required: true
         schema:
           type: integer
-      - name: Authorization
-        in: header
-        schema:
-          type: string
-        required: true
       responses:
         '200':
           description: OK
@@ -85,17 +104,16 @@ paths:
       summary: Circle deleted
       tags:
       - Circles
+      security:
+      - bearerAuth: []
+      description: Requires JWT. Use **Authorize** (bearerAuth) and paste token **without**
+        `Bearer`.
       parameters:
       - name: id
         in: path
         required: true
         schema:
           type: integer
-      - name: Authorization
-        in: header
-        schema:
-          type: string
-        required: true
       responses:
         '204':
           description: No content
@@ -106,12 +124,11 @@ paths:
       summary: get
       tags:
       - Circles
+      security:
+      - bearerAuth: []
+      description: Requires JWT. Use **Authorize** (bearerAuth) and paste token **without**
+        `Bearer`.
       parameters:
-      - name: Authorization
-        in: header
-        schema:
-          type: string
-        required: true
       - name: frame_id
         in: query
         schema:
@@ -144,12 +161,12 @@ paths:
       summary: Frame created
       tags:
       - Frames
-      parameters:
-      - name: Authorization
-        in: header
-        schema:
-          type: string
-        required: true
+      security:
+      - bearerAuth: []
+      description: 'Authentication flow: 1) POST `/api/v1/auth/token` with header
+        `X-Passphrase: <secret>-YYYY-MM-DD`; 2) Click **Authorize** (bearerAuth) and
+        paste the token **without** the `Bearer` prefix; 3) Execute this request.'
+      parameters: []
       responses:
         '201':
           description: Frame created
@@ -194,17 +211,17 @@ paths:
       summary: OK
       tags:
       - Frames
+      security:
+      - bearerAuth: []
+      description: 'Requires JWT. Generate at `/api/v1/auth/token` (send `X-Passphrase:
+        <secret>-YYYY-MM-DD`), then click **Authorize** and paste the token **without**
+        `Bearer`.'
       parameters:
       - name: id
         in: path
         required: true
         schema:
           type: integer
-      - name: Authorization
-        in: header
-        schema:
-          type: string
-        required: true
       responses:
         '200':
           description: OK
@@ -214,17 +231,16 @@ paths:
       summary: delete
       tags:
       - Frames
+      security:
+      - bearerAuth: []
+      description: Requires JWT. Use **Authorize** (bearerAuth) and paste the token
+        **without** `Bearer`.
       parameters:
       - name: id
         in: path
         required: true
         schema:
           type: integer
-      - name: Authorization
-        in: header
-        schema:
-          type: string
-        required: true
       responses:
         '204':
           description: No content
@@ -244,6 +260,8 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
+      description: 'Paste only the token in the Authorize dialog. The UI will send
+        `Authorization: Bearer <token>` automatically.'
   schemas:
     Error:
       type: object
@@ -270,7 +288,8 @@ components:
           - validation error
     Frame:
       type: object
-      description: 'Frame (rectangle in cm). Rule: frames must not touch/overlap (422).'
+      description: 'Frame (rectangle in cm). Rule: frames must not touch or overlap.
+        If they do, API returns 422.'
       properties:
         id:
           type: integer
@@ -335,7 +354,7 @@ components:
               example: 30.0
             circles_attributes:
               type: array
-              description: Nested create (atomic transaction).
+              description: Nested create in an atomic transaction.
               items:
                 type: object
                 required:
@@ -354,7 +373,7 @@ components:
                     format: float
                     minimum: 0
                     exclusiveMinimum: true
-          description: If the new frame touches/overlaps another, returns 422.
+          description: If the new frame touches or overlaps another, API returns 422.
     Circle:
       type: object
       properties:
@@ -402,8 +421,8 @@ components:
               format: float
               minimum: 0
               exclusiveMinimum: true
-          description: Must fit inside frame and not touch/overlap other circles in
-            the same frame.
+          description: Must fit inside the frame and must not touch or overlap other
+            circles in the same frame.
     CircleUpdatePayload:
       type: object
       required:
@@ -451,3 +470,5 @@ components:
             type: array
             items:
               "$ref": "#/components/schemas/Circle"
+security:
+- bearerAuth: []

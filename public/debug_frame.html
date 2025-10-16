@@ -8,21 +8,34 @@
       :root { color-scheme: light dark; }
       body { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Apple Color Emoji","Segoe UI Emoji"; margin: 24px; }
       input, button { font: inherit; padding: 8px 12px; }
-      .row { display:flex; gap:8px; align-items:center; margin-bottom:12px; }
+      .row { display:flex; gap:8px; align-items:center; margin-bottom:12px; flex-wrap: wrap; }
       #canvas { border:1px solid #ccc; width:800px; height:600px; background: #f9fafb; }
       .muted { opacity:.7; font-size: 12px; }
       .legend { margin: 8px 0 16px; }
       svg { width:100%; height:100%; }
+      .status { margin-left: 8px; font-size: 12px; }
+      .ok { color: #16a34a; }
+      .bad { color: #dc2626; }
     </style>
   </head>
   <body>
     <h1>Frame Viewer (SVG)</h1>
+
+    <div class="row">
+      <label for="pass">Passphrase:</label>
+      <input id="pass" type="password" placeholder="secret" autocomplete="current-password"/>
+      <button id="authBtn">Get token</button>
+      <span id="authStatus" class="status bad">not authenticated</span>
+      <span class="muted">Client sends X-Passphrase as "&lt;secret&gt;-YYYY-MM-DD" and stores the JWT.</span>
+    </div>
+
     <div class="row">
       <label for="frameId">Frame ID:</label>
       <input id="frameId" type="number" min="1" placeholder="e.g. 1"/>
       <button id="loadBtn">Load</button>
-      <span class="muted">Draws the frame rectangle and all its circles. Coordinates are interpreted in cm; we autoscale to fit.</span>
+      <span class="muted">Draws the frame rectangle and all its circles. Coordinates are in cm and autoscaled.</span>
     </div>
+
     <div id="meta" class="legend muted"></div>
     <div id="canvas"></div>
 
@@ -31,6 +44,80 @@
       const elId  = document.getElementById('frameId');
       const elMeta= document.getElementById('meta');
       const elCanvas = document.getElementById('canvas');
+      const elPass = document.getElementById('pass');
+      const elAuthBtn = document.getElementById('authBtn');
+      const elAuthStatus = document.getElementById('authStatus');
+
+      let authToken = null;
+      let authExp = null;
+
+      function setStatus(ok, text) {
+        elAuthStatus.classList.toggle('ok', ok);
+        elAuthStatus.classList.toggle('bad', !ok);
+        elAuthStatus.textContent = text;
+      }
+
+      function todayYMD() {
+        const d = new Date();
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${y}-${m}-${day}`;
+      }
+
+      function saveToken(token, exp) {
+        authToken = token;
+        authExp = exp;
+        try {
+          localStorage.setItem('zk.jwt', JSON.stringify({ token, exp }));
+        } catch (_) {}
+        const secsLeft = Math.max(0, Math.floor(exp - Date.now()/1000));
+        setStatus(true, `authenticated, expires in ${secsLeft}s`);
+      }
+
+      function loadTokenFromStorage() {
+        try {
+          const raw = localStorage.getItem('zk.jwt');
+          if (!raw) return false;
+          const { token, exp } = JSON.parse(raw);
+          if (!token || !exp) return false;
+          if (exp <= Math.floor(Date.now()/1000)) return false;
+          authToken = token;
+          authExp = exp;
+          const secsLeft = Math.max(0, Math.floor(exp - Date.now()/1000));
+          setStatus(true, `authenticated, expires in ${secsLeft}s`);
+          return true;
+        } catch (_) {
+          return false;
+        }
+      }
+
+      async function authenticate() {
+        const secret = elPass.value.trim();
+        if (!secret) { alert("Type the passphrase"); return; }
+        const headerValue = `${secret}-${todayYMD()}`;
+        const res = await fetch('/api/v1/auth/token', {
+          method: 'POST',
+          headers: { 'X-Passphrase': headerValue }
+        });
+        if (!res.ok) {
+          const err = await res.text();
+          setStatus(false, `unauthorized`);
+          alert(`Auth failed ${res.status}: ${err}`);
+          return;
+        }
+        const data = await res.json();
+        saveToken(data.token, data.exp);
+      }
+
+      function requireAuthHeaders() {
+        if (!authToken || (authExp && authExp <= Math.floor(Date.now()/1000))) {
+          setStatus(false, 'not authenticated');
+          alert('Authenticate first');
+          throw new Error('no auth');
+        }
+        return { Authorization: `Bearer ${authToken}` };
+      }
 
       function clearCanvas(){ elCanvas.innerHTML = ""; elMeta.textContent = ""; }
 
@@ -51,9 +138,7 @@
         const scale  = Math.min(scaleX, scaleY);
 
         function xToPx(x) { return (x - fxMin) * scale + pad; }
-        function yToPx(y) { 
-          return height - ((y - fyMin) * scale + pad);
-        }
+        function yToPx(y) { return height - ((y - fyMin) * scale + pad); }
 
         const svgNS = "http://www.w3.org/2000/svg";
         const svg = document.createElementNS(svgNS, "svg");
@@ -90,17 +175,21 @@
         clearCanvas();
         const id = elId.value;
         if (!id) { alert("Type a Frame ID"); return; }
-        const res = await fetch(`/api/v1/frames/${id}`);
+        const headers = requireAuthHeaders();
+        const res = await fetch(`/api/v1/frames/${id}`, { headers });
         if (!res.ok) {
           const err = await res.text();
           alert(`Error ${res.status}: ${err}`);
+          if (res.status === 401) setStatus(false, 'not authenticated');
           return;
         }
         const frame = await res.json();
         drawFrame(frame);
       }
 
+      elAuthBtn.addEventListener('click', authenticate);
       elBtn.addEventListener('click', load);
+      loadTokenFromStorage();
     </script>
   </body>
 </html>

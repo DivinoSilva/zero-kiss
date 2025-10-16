@@ -8,8 +8,8 @@ RSpec.describe "Frames API", swagger_doc: "v1/swagger.yaml" do
       tags "Frames"
       consumes "application/json"
       produces "application/json"
-
-      parameter name: "Authorization", in: :header, schema: { type: :string }, required: true
+      security [bearerAuth: []]
+      description "Authentication flow: 1) POST `/api/v1/auth/token` with header `X-Passphrase: <secret>-YYYY-MM-DD`; 2) Click **Authorize** (bearerAuth) and paste the token **without** the `Bearer` prefix; 3) Execute this request."
 
       parameter name: :frame, in: :body, schema: {
         type: :object,
@@ -52,9 +52,10 @@ RSpec.describe "Frames API", swagger_doc: "v1/swagger.yaml" do
     get("OK") do
       tags "Frames"
       produces "application/json"
+      security [bearerAuth: []]
+      description "Requires JWT. Generate at `/api/v1/auth/token` (send `X-Passphrase: <secret>-YYYY-MM-DD`), then click **Authorize** and paste the token **without** `Bearer`."
 
       parameter name: :id, in: :path, type: :integer, required: true
-      parameter name: "Authorization", in: :header, schema: { type: :string }, required: true
 
       response(200, "OK") do
         let(:Authorization) { auth_headers["Authorization"] }
@@ -72,9 +73,10 @@ RSpec.describe "Frames API", swagger_doc: "v1/swagger.yaml" do
     delete("delete") do
       tags "Frames"
       produces "application/json"
+      security [bearerAuth: []]
+      description "Requires JWT. Use **Authorize** (bearerAuth) and paste the token **without** `Bearer`."
 
       parameter name: :id, in: :path, type: :integer, required: true
-      parameter name: "Authorization", in: :header, schema: { type: :string }, required: true
 
       response(204, "No content") do
         let(:Authorization) { auth_headers["Authorization"] }

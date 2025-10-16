@@ -16,7 +16,7 @@ module Api
       private
 
       def passphrase_valid?
-        request.headers["X-Passphrase"].to_s == "#{ENV["YOU_SHOW_NOT_PASS"].to_s}-#{Date.current.to_s}"
+        request.headers["X-Passphrase"].to_s == "#{ENV["PASSPHRASE"].to_s}-#{Date.current.to_s}"
       end
     end
   end

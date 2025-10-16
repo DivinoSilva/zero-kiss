@@ -8,9 +8,10 @@ RSpec.describe "Circles API", swagger_doc: "v1/swagger.yaml" do
       tags "Circles"
       consumes "application/json"
       produces "application/json"
+      security [bearerAuth: []]
+      description "Requires JWT. Use **Authorize** (bearerAuth) and paste the token **without** `Bearer`."
 
       parameter name: :frame_id, in: :path, type: :integer, required: true
-      parameter name: "Authorization", in: :header, schema: { type: :string }, required: true
 
       parameter name: :circle, in: :body, schema: {
         type: :object,
@@ -23,22 +24,22 @@ RSpec.describe "Circles API", swagger_doc: "v1/swagger.yaml" do
       }
 
       response(201, "Circle created") do
-        let(:frame_id) { create(:frame, center_x: 0, center_y: 0, width: 40, height: 40).id }
         let(:Authorization) { auth_headers["Authorization"] }
+        let(:frame_id) { create(:frame, center_x: 0, center_y: 0, width: 40, height: 40).id }
         let(:circle) { { center_x: 0, center_y: 0, diameter: 6 } }
         run_test!
       end
 
       response(404, "not found") do
-        let(:frame_id) { 999_999 }
         let(:Authorization) { auth_headers["Authorization"] }
+        let(:frame_id) { 999_999 }
         let(:circle) { { center_x: 0, center_y: 0, diameter: 6 } }
         run_test!
       end
 
       response(422, "unprocessable entity") do
-        let(:frame_id) { create(:frame, center_x: 0, center_y: 0, width: 40, height: 40).id }
         let(:Authorization) { auth_headers["Authorization"] }
+        let(:frame_id) { create(:frame, center_x: 0, center_y: 0, width: 40, height: 40).id }
         let(:circle) { { center_x: 25.1, center_y: 0, diameter: 40 } }
         run_test!
       end
@@ -50,9 +51,10 @@ RSpec.describe "Circles API", swagger_doc: "v1/swagger.yaml" do
       tags "Circles"
       consumes "application/json"
       produces "application/json"
+      security [bearerAuth: []]
+      description "Requires JWT. Use **Authorize** (bearerAuth) and paste token **without** `Bearer`."
 
       parameter name: :id, in: :path, type: :integer, required: true
-      parameter name: "Authorization", in: :header, schema: { type: :string }, required: true
 
       parameter name: :circle, in: :body, schema: {
         type: :object,
@@ -90,9 +92,10 @@ RSpec.describe "Circles API", swagger_doc: "v1/swagger.yaml" do
     delete("Circle deleted") do
       tags "Circles"
       produces "application/json"
+      security [bearerAuth: []]
+      description "Requires JWT. Use **Authorize** (bearerAuth) and paste token **without** `Bearer`."
 
       parameter name: :id, in: :path, type: :integer, required: true
-      parameter name: "Authorization", in: :header, schema: { type: :string }, required: true
 
       response(204, "No content") do
         let(:Authorization) { auth_headers["Authorization"] }
@@ -113,8 +116,9 @@ RSpec.describe "Circles API", swagger_doc: "v1/swagger.yaml" do
     get("get") do
       tags "Circles"
       produces "application/json"
+      security [bearerAuth: []]
+      description "Requires JWT. Use **Authorize** (bearerAuth) and paste token **without** `Bearer`."
 
-      parameter name: "Authorization", in: :header, schema: { type: :string }, required: true
       parameter name: :frame_id, in: :query, schema: { type: :integer }
       parameter name: :center_x, in: :query, schema: { type: :number }
       parameter name: :center_y, in: :query, schema: { type: :number }
