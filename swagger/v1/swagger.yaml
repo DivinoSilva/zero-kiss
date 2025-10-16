@@ -251,6 +251,14 @@ paths:
       summary: Health check
       tags:
       - Health
+      description: Liveness/Readiness probe. No authentication required.
+      parameters:
+      - name: Authorization
+        in: header
+        required: false
+        schema:
+          type: string
+        description: Not required for this endpoint
       responses:
         '200':
           description: ok
