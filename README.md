@@ -8,6 +8,7 @@ Docs-first approach with RSwag (OpenAPI). No PostGIS.
 - [Architecture & Decisions](#architecture--decisions)
 - [Business Rules](#business-rules)
 - [Quick Start](#quick-start)
+- [Authentication](#authentication)
 - [Everyday Commands (Justfile)](#everyday-commands-justfile)
 - [Development Workflow](#development-workflow)
 - [Testing](#testing)
@@ -81,6 +82,57 @@ just dev-stop
 # list all Just commands
 just
 ````
+
+---
+
+## Authentication
+
+All endpoints are protected by **JWT**.
+To access them, you must first generate a token using a daily passphrase.
+
+### 1️⃣ Generate a token
+
+Send a `POST` request to `/api/v1/auth/token` with the header:
+
+```
+X-Passphrase: <secret>-YYYY-MM-DD
+```
+
+* `<secret>` is defined in your `.env` (variable `PASSPHRASE`)
+* `YYYY-MM-DD` is **today's date**
+* Example using `curl`:
+
+```bash
+curl -X POST http://localhost:3000/api/v1/auth/token \
+  -H "X-Passphrase: secret-$(date +%F)"
+```
+
+Example response:
+
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3NjA2MjYzMDYsImV4cCI6MTc2MDYyNjM2NiwiaXNzIjoiemVyb2tpc3MiLCJhdWQiOiJ6ZXJva2lzcy1jbGllbnRzIn0.znFDxfzEHQSA0r9TlGtlrpdu5yBmKMQunbQQUK_N-mk",
+  "exp": 1760626366
+}
+```
+
+### 2️⃣ Use the token in subsequent requests
+
+Add the header:
+
+```
+Authorization: Bearer <token>
+```
+
+Example:
+
+```bash
+curl -X GET http://localhost:3000/api/v1/frames/1 \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3NjA2MjYzMDYs..."
+```
+
+> **Token lifetime**: 60 seconds (default).
+> Generate a new token anytime using the same passphrase header.
 
 ---
 
@@ -194,5 +246,3 @@ just dev-swaggerize
 ## License
 
 MIT
-
-

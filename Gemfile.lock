@@ -98,6 +98,10 @@ GEM
       irb (~> 1.10)
       reline (>= 0.3.8)
     diff-lcs (1.6.2)
+    dotenv (3.1.8)
+    dotenv-rails (3.1.8)
+      dotenv (= 3.1.8)
+      railties (>= 6.1)
     drb (2.2.3)
     erb (5.0.3)
     erubi (1.13.1)
@@ -122,6 +126,8 @@ GEM
       addressable (~> 2.8)
       bigdecimal (~> 3.1)
     jsonapi-renderer (0.2.2)
+    jwt (2.10.2)
+      base64
     language_server-protocol (3.17.0.5)
     lint_roller (1.1.0)
     logger (1.7.0)
@@ -301,8 +307,10 @@ DEPENDENCIES
   bootsnap
   brakeman
   debug
+  dotenv-rails
   factory_bot_rails (~> 6.4)
   faker (~> 3.4)
+  jwt (~> 2.8)
   pg (~> 1.5)
   puma (>= 5.0)
   rack-cors (~> 2.0)

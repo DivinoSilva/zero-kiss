@@ -6,6 +6,7 @@ Rails.application.routes.draw do
 
   namespace :api do
     namespace :v1 do
+      post "auth/token", to: "auth#token"
       resources :frames, only: %i[create show destroy] do
         resources :circles, only: %i[create]
       end

@@ -2,14 +2,18 @@
 require "rails_helper"
 
 RSpec.describe "Frames API", type: :request do
-  def json = JSON.parse(response.body)
+  def json
+    JSON.parse(response.body)
+  end
+  before(:all) { ENV["YOU_SHOW_NOT_PASS"] = "test-pass" }
+  let(:headers) { auth_headers }
 
   describe "POST /api/v1/frames" do
     let(:path) { "/api/v1/frames" }
 
     context "when payload is valid" do
       it "creates and returns 201" do
-        post path, params: { frame: { center_x: 10, center_y: 10, width: 20, height: 30 } }
+        post path, params: { frame: { center_x: 10, center_y: 10, width: 20, height: 30 } }, headers: headers
         expect(response).to have_http_status(:created)
         expect(json).to include("id", "center_x", "center_y", "width", "height")
       end
@@ -17,7 +21,7 @@ RSpec.describe "Frames API", type: :request do
 
     context "when payload is invalid" do
       it "returns 422 with errors" do
-        post path, params: { frame: { center_x: 0, center_y: 0, width: 0, height: -1 } }
+        post path, params: { frame: { center_x: 0, center_y: 0, width: 0, height: -1 } }, headers: headers
         expect(response).to have_http_status(:unprocessable_entity)
         expect(json).to have_key("errors")
       end
@@ -31,7 +35,7 @@ RSpec.describe "Frames API", type: :request do
               center_x: 0, center_y: 0, width: 100, height: 100,
               circles_attributes: []
             }
-          }
+          }, headers: headers
         }.to change(Frame, :count).by(1).and change(Circle, :count).by(0)
 
         expect(response).to have_http_status(:created)
@@ -52,7 +56,7 @@ RSpec.describe "Frames API", type: :request do
                 { center_x:  20, center_y: 0,  diameter: 10 }
               ]
             }
-          }
+          }, headers: headers
         }.to change(Frame, :count).by(1).and change(Circle, :count).by(2)
 
         expect(response).to have_http_status(:created)
@@ -71,7 +75,7 @@ RSpec.describe "Frames API", type: :request do
                 { center_x: 5, center_y: 0, diameter: 10 }
               ]
             }
-          }
+          }, headers: headers
         }.to change(Frame, :count).by(0).and change(Circle, :count).by(0)
 
         expect(response).to have_http_status(:unprocessable_entity)
@@ -82,7 +86,7 @@ RSpec.describe "Frames API", type: :request do
     context "frame separation rule - edge touch" do
       it "returns 422" do
         create(:frame, center_x: 0, center_y: 0, width: 10, height: 10)
-        post path, params: { frame: { center_x: 10, center_y: 0, width: 10, height: 10 } }
+        post path, params: { frame: { center_x: 10, center_y: 0, width: 10, height: 10 } }, headers: headers
         expect(response).to have_http_status(:unprocessable_entity)
       end
     end
@@ -90,7 +94,7 @@ RSpec.describe "Frames API", type: :request do
     context "frame separation rule - corner touch" do
       it "returns 422" do
         create(:frame, center_x: 0, center_y: 0, width: 10, height: 10)
-        post path, params: { frame: { center_x: 10, center_y: 10, width: 10, height: 10 } }
+        post path, params: { frame: { center_x: 10, center_y: 10, width: 10, height: 10 } }, headers: headers
         expect(response).to have_http_status(:unprocessable_entity)
       end
     end
@@ -98,7 +102,7 @@ RSpec.describe "Frames API", type: :request do
     context "frame separation rule - overlap" do
       it "returns 422" do
         create(:frame, center_x: 0, center_y: 0, width: 10, height: 10)
-        post path, params: { frame: { center_x: 4, center_y: 0, width: 10, height: 10 } }
+        post path, params: { frame: { center_x: 4, center_y: 0, width: 10, height: 10 } }, headers: headers
         expect(response).to have_http_status(:unprocessable_entity)
       end
     end
@@ -106,7 +110,7 @@ RSpec.describe "Frames API", type: :request do
     context "when there is minimum separation (epsilon = 0.001)" do
       it "returns 201" do
         create(:frame, center_x: 0, center_y: 0, width: 10, height: 10)
-        post path, params: { frame: { center_x: 10.001, center_y: 0, width: 10, height: 10 } }
+        post path, params: { frame: { center_x: 10.001, center_y: 0, width: 10, height: 10 } }, headers: headers
         expect(response).to have_http_status(:created)
       end
     end
@@ -114,7 +118,7 @@ RSpec.describe "Frames API", type: :request do
     context "strict separation" do
       it "returns 201" do
         create(:frame, center_x: 0, center_y: 0, width: 10, height: 10)
-        post path, params: { frame: { center_x: 11, center_y: 0, width: 10, height: 10 } }
+        post path, params: { frame: { center_x: 11, center_y: 0, width: 10, height: 10 } }, headers: headers
         expect(response).to have_http_status(:created)
       end
     end
@@ -130,7 +134,7 @@ RSpec.describe "Frames API", type: :request do
         create(:circle, frame:, center_x:   0, center_y:  40, diameter: 10)
         create(:circle, frame:, center_x:   0, center_y: -40, diameter: 10)
 
-        get "/api/v1/frames/#{frame.id}"
+        get "/api/v1/frames/#{frame.id}", headers: headers
         expect(response).to have_http_status(:ok)
         expect(json["circles_count"]).to eq(4)
         expect(json["rightmost_circle"]).to include("center_x" => 40.0)
@@ -142,7 +146,7 @@ RSpec.describe "Frames API", type: :request do
 
     context "when the frame does not exist" do
       it "returns 404 with error" do
-        get "/api/v1/frames/999_999"
+        get "/api/v1/frames/999_999", headers: headers
         expect(response).to have_http_status(:not_found)
         expect(json["error"]).to eq("not found")
       end
@@ -154,7 +158,7 @@ RSpec.describe "Frames API", type: :request do
       it "returns 422 with errors" do
         frame = create(:frame, center_x: 0, center_y: 0, width: 10, height: 10)
         create(:circle, frame:, center_x: 0, center_y: 0, diameter: 2)
-        delete "/api/v1/frames/#{frame.id}"
+        delete "/api/v1/frames/#{frame.id}", headers: headers
         expect(response).to have_http_status(:unprocessable_entity)
         expect(json).to have_key("errors")
       end
@@ -164,14 +168,14 @@ RSpec.describe "Frames API", type: :request do
       let!(:frame) { create(:frame) }
 
       it "deletes and returns 204" do
-        delete "/api/v1/frames/#{frame.id}"
+        delete "/api/v1/frames/#{frame.id}", headers: headers
         expect(response).to have_http_status(:no_content)
       end
     end
 
     context "when the frame does not exist" do
       it "returns 404" do
-        delete "/api/v1/frames/999_999"
+        delete "/api/v1/frames/999_999", headers: headers
         expect(response).to have_http_status(:not_found)
       end
     end

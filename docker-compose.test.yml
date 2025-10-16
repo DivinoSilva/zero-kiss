@@ -11,6 +11,8 @@ services:
       DATABASE_URL: postgres://postgres:postgres@db:5432/zero_kiss_test
     depends_on:
       - db
+    env_file:
+      - .env.test
 
   db:
     image: postgres:16
