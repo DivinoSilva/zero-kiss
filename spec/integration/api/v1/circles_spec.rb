@@ -124,6 +124,12 @@ RSpec.describe "Circles API", swagger_doc: "v1/swagger.yaml" do
 
       response(200, "OK") do
         let(:Authorization) { auth_headers["Authorization"] }
+        let(:frame_id) { nil }
+        let(:center_x) { nil }
+        let(:center_y) { nil }
+        let(:radius)   { nil }
+        let(:page)     { nil }
+        let(:per_page) { nil }
         run_test!
       end
     end
